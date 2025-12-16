@@ -156,7 +156,7 @@ export default function AllowedRegistrationIndex({ auth, registrations, type, fi
                                 <thead className="bg-gray-50 dark:bg-gray-700">
                                     <tr>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            {type === 'teacher' ? 'NIP' : 'NIS'}
+                                            {type === 'teacher' ? 'Kode Guru' : 'NIS'}
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Nama Lengkap</th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Kode Kupon</th>
@@ -228,16 +228,24 @@ export default function AllowedRegistrationIndex({ auth, registrations, type, fi
                             <div className="mt-4 flex justify-center">
                                 <div className="flex gap-1">
                                     {registrations.links.map((link, k) => (
-                                        <Link
-                                            key={k}
-                                            href={link.url}
-                                            className={`px-3 py-1 border rounded text-sm ${
-                                                link.active
-                                                    ? 'bg-indigo-600 text-white border-indigo-600'
-                                                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600'
-                                            } ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                            dangerouslySetInnerHTML={{ __html: link.label }}
-                                        />
+                                        link.url ? (
+                                            <Link
+                                                key={k}
+                                                href={link.url}
+                                                className={`px-3 py-1 border rounded text-sm ${
+                                                    link.active
+                                                        ? 'bg-indigo-600 text-white border-indigo-600'
+                                                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600'
+                                                }`}
+                                                dangerouslySetInnerHTML={{ __html: link.label }}
+                                            />
+                                        ) : (
+                                            <span
+                                                key={k}
+                                                className="px-3 py-1 border rounded text-sm bg-white text-gray-400 border-gray-300 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500 dark:border-gray-600"
+                                                dangerouslySetInnerHTML={{ __html: link.label }}
+                                            />
+                                        )
                                     ))}
                                 </div>
                             </div>
@@ -254,7 +262,7 @@ export default function AllowedRegistrationIndex({ auth, registrations, type, fi
                     </h2>
 
                     <div className="mb-4">
-                        <InputLabel htmlFor="identity_number" value={type === 'teacher' ? 'NIP' : 'NIS'} className="dark:text-gray-300" />
+                        <InputLabel htmlFor="identity_number" value={type === 'teacher' ? 'Kode Guru' : 'NIS'} className="dark:text-gray-300" />
                         <TextInput
                             id="identity_number"
                             type="text"
