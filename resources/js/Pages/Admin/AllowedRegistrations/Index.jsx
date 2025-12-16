@@ -77,8 +77,31 @@ export default function AllowedRegistrationIndex({ auth, registrations, type, fi
         });
     };
 
+    const [search, setSearch] = useState(filters.search || '');
+    const [perPage, setPerPage] = useState(filters.per_page || 10);
+
+    const handleSearch = (e) => {
+        const value = e.target.value;
+        setSearch(value);
+        router.get(
+            route('admin.allowed-registrations.index'),
+            { type, search: value, per_page: perPage },
+            { preserveState: true, replace: true }
+        );
+    };
+
+    const handlePerPageChange = (e) => {
+        const value = e.target.value;
+        setPerPage(value);
+        router.get(
+            route('admin.allowed-registrations.index'),
+            { type, search, per_page: value },
+            { preserveState: true }
+        );
+    };
+
     const handleTypeChange = (newType) => {
-        router.get(route('admin.allowed-registrations.index'), { type: newType }, { preserveState: true });
+        router.get(route('admin.allowed-registrations.index'), { type: newType, per_page: perPage }, { preserveState: true });
     };
 
     if (!registrations || !registrations.data) {
@@ -133,11 +156,34 @@ export default function AllowedRegistrationIndex({ auth, registrations, type, fi
                             </button>
                         </div>
 
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                                Daftar {type === 'teacher' ? 'Guru' : 'Siswa'} (Whitelist)
-                            </h3>
-                            <div className="flex gap-2">
+                        <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+                            <div className="flex items-center gap-4 w-full sm:w-auto">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm text-gray-600 dark:text-gray-400">Show</span>
+                                    <select
+                                        value={perPage}
+                                        onChange={handlePerPageChange}
+                                        className="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm text-sm"
+                                    >
+                                        <option value="10">10</option>
+                                        <option value="25">25</option>
+                                        <option value="50">50</option>
+                                        <option value="100">100</option>
+                                    </select>
+                                    <span className="text-sm text-gray-600 dark:text-gray-400">entries</span>
+                                </div>
+                                <div className="w-full sm:w-64">
+                                    <TextInput
+                                        type="text"
+                                        value={search}
+                                        onChange={handleSearch}
+                                        placeholder="Cari Nama atau Kode..."
+                                        className="w-full"
+                                    />
+                                </div>
+                            </div>
+                            
+                            <div className="flex gap-2 w-full sm:w-auto justify-end">
                                 <a
                                     href={route('admin.allowed-registrations.export', { type })}
                                     target="_blank"

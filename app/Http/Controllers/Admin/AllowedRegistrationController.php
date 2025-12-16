@@ -13,11 +13,22 @@ class AllowedRegistrationController extends Controller
     public function index(Request $request)
     {
         $type = $request->input('type', 'teacher'); // Default teacher
+        $search = $request->input('search');
+        $perPage = $request->input('per_page', 10);
         
-        $registrations = AllowedRegistration::where('role_type', $type)
-            ->with('schoolClass')
-            ->orderByRaw('CAST(identity_number AS UNSIGNED) ASC')
-            ->paginate(10)
+        $query = AllowedRegistration::where('role_type', $type)
+            ->with('schoolClass');
+
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('identity_number', 'like', "%{$search}%")
+                  ->orWhere('registration_code', 'like', "%{$search}%");
+            });
+        }
+
+        $registrations = $query->orderByRaw('CAST(identity_number AS UNSIGNED) ASC')
+            ->paginate($perPage)
             ->withQueryString();
 
         $classes = SchoolClass::whereHas('classStatus', function($q) {
@@ -28,7 +39,7 @@ class AllowedRegistrationController extends Controller
             'registrations' => $registrations,
             'type' => $type,
             'classes' => $classes,
-            'filters' => $request->only(['search', 'type'])
+            'filters' => $request->only(['search', 'type', 'per_page'])
         ]);
     }
 
