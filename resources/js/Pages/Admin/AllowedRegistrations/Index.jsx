@@ -81,6 +81,23 @@ export default function AllowedRegistrationIndex({ auth, registrations, type, fi
         router.get(route('admin.allowed-registrations.index'), { type: newType }, { preserveState: true });
     };
 
+    if (!registrations || !registrations.data) {
+        return (
+            <AuthenticatedLayout
+                user={auth.user}
+                header={<h2 className="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">Master Data</h2>}
+            >
+                <div className="py-12">
+                    <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                        <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6 text-center text-gray-500">
+                            Memuat data...
+                        </div>
+                    </div>
+                </div>
+            </AuthenticatedLayout>
+        );
+    }
+
     return (
         <AuthenticatedLayout
             user={auth.user}
@@ -197,7 +214,7 @@ export default function AllowedRegistrationIndex({ auth, registrations, type, fi
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan="4" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                                            <td colSpan={type === 'student' ? 6 : 5} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
                                                 Belum ada data.
                                             </td>
                                         </tr>
@@ -273,7 +290,7 @@ export default function AllowedRegistrationIndex({ auth, registrations, type, fi
                                 onChange={(e) => setData('school_class_id', e.target.value)}
                             >
                                 <option value="">Pilih Kelas</option>
-                                {classes && classes.map((cls) => (
+                                {Array.isArray(classes) && classes.map((cls) => (
                                     <option key={cls.id} value={cls.id}>
                                         {cls.name}
                                     </option>
