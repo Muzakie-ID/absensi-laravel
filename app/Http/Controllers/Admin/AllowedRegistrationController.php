@@ -16,7 +16,7 @@ class AllowedRegistrationController extends Controller
         
         $registrations = AllowedRegistration::where('role_type', $type)
             ->with('schoolClass')
-            ->orderBy('identity_number', 'asc')
+            ->orderByRaw('CAST(identity_number AS UNSIGNED) ASC')
             ->paginate(10)
             ->withQueryString();
 
