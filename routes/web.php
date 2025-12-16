@@ -70,7 +70,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
     // Time Slots (Nested)
     Route::post('admin/schedule-templates/{schedule_template}/time-slots', [ScheduleTemplateController::class, 'storeTimeSlot'])->name('admin.schedule-templates.time-slots.store');
+    Route::post('admin/schedule-templates/{schedule_template}/time-slots/copy', [ScheduleTemplateController::class, 'copyTimeSlots'])->name('admin.schedule-templates.time-slots.copy');
     Route::put('admin/schedule-templates/{schedule_template}/time-slots/{time_slot}', [ScheduleTemplateController::class, 'updateTimeSlot'])->name('admin.schedule-templates.time-slots.update');
+    Route::delete('admin/schedule-templates/{schedule_template}/time-slots/destroy-all', [ScheduleTemplateController::class, 'destroyAllTimeSlots'])->name('admin.schedule-templates.time-slots.destroy-all');
     Route::delete('admin/schedule-templates/{schedule_template}/time-slots/{time_slot}', [ScheduleTemplateController::class, 'destroyTimeSlot'])->name('admin.schedule-templates.time-slots.destroy');
 
     // Master Schedule
