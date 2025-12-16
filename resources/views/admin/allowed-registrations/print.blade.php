@@ -31,7 +31,7 @@
             <tr class="bg-gray-100">
                 <th class="border border-gray-300 px-4 py-2 text-center w-12">No</th>
                 <th class="border border-gray-300 px-4 py-2 text-left">Nama Lengkap</th>
-                <th class="border border-gray-300 px-4 py-2 text-center">{{ $type == 'teacher' ? 'NIP' : 'NIS' }}</th>
+                <th class="border border-gray-300 px-4 py-2 text-center">{{ $type == 'teacher' ? 'Kode Guru' : 'NIS' }}</th>
                 @if($type == 'student')
                 <th class="border border-gray-300 px-4 py-2 text-center">Kelas</th>
                 @endif

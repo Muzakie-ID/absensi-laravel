@@ -16,7 +16,7 @@ class AllowedRegistrationController extends Controller
         
         $registrations = AllowedRegistration::where('role_type', $type)
             ->with('schoolClass')
-            ->latest()
+            ->orderBy('identity_number', 'asc')
             ->paginate(10)
             ->withQueryString();
 
