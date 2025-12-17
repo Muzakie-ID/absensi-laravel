@@ -205,7 +205,7 @@ export default function AllowedRegistrationIndex({ auth, registrations, type, fi
                                             {type === 'teacher' ? 'Kode Guru' : 'NIS'}
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Nama Lengkap</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Kode Kupon</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Kode Registrasi</th>
                                         {type === 'student' && (
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Kelas</th>
                                         )}

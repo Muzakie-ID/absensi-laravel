@@ -46,7 +46,7 @@ class RegisteredUserController extends Controller
                     ->first();
 
         if (!$allowed) {
-             return back()->withErrors(['registration_identifier' => 'Data tidak ditemukan di Master Data (NIP/NIS atau Kode Kupon salah).']);
+             return back()->withErrors(['registration_identifier' => 'Data tidak ditemukan di Master Data (NIS atau Kode Registrasi salah).']);
         }
 
         if ($allowed->is_registered) {

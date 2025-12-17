@@ -83,7 +83,9 @@ class AllowedRegistrationController extends Controller
             'identity_number' => 'required|string',
         ]);
 
-        $registration = AllowedRegistration::where('identity_number', $request->identity_number)->first();
+        $registration = AllowedRegistration::where('identity_number', $request->identity_number)
+            ->orWhere('registration_code', $request->identity_number)
+            ->first();
 
         if ($registration) {
             return response()->json([
@@ -91,12 +93,13 @@ class AllowedRegistrationController extends Controller
                 'name' => $registration->name,
                 'role_type' => $registration->role_type,
                 'school_class_id' => $registration->school_class_id,
+                'identity_number' => $registration->identity_number, // Return the real identity number if found by code
             ]);
         }
 
         return response()->json([
             'found' => false,
-            'message' => 'Data tidak ditemukan di whitelist.',
+            'message' => 'Data tidak ditemukan di whitelist (Cek NIP/NIS atau Kode Registrasi).',
         ]);
     }
 

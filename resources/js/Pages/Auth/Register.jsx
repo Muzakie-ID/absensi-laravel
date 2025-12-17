@@ -62,7 +62,7 @@ export default function Register() {
                 </div>
 
                 <div className="mt-4">
-                    <InputLabel htmlFor="registration_identifier" value="NIP / NIS / Kode Kupon" />
+                    <InputLabel htmlFor="registration_identifier" value="NIS / Kode Registrasi" />
 
                     <TextInput
                         id="registration_identifier"
@@ -70,7 +70,7 @@ export default function Register() {
                         value={data.registration_identifier}
                         className="mt-1 block w-full"
                         onChange={(e) => setData('registration_identifier', e.target.value)}
-                        placeholder="Masukkan NIP, NIS, atau Kode Kupon"
+                        placeholder="Masukkan NIS atau Kode Registrasi"
                         required
                     />
 
