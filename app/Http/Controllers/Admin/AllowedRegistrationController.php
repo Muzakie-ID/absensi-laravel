@@ -88,8 +88,18 @@ class AllowedRegistrationController extends Controller
             ->first();
 
         if ($registration) {
+            if ($registration->is_registered) {
+                return response()->json([
+                    'found' => true,
+                    'is_registered' => true,
+                    'message' => 'Pengguna ini sudah terdaftar dalam sistem.',
+                    'name' => $registration->name,
+                ]);
+            }
+
             return response()->json([
                 'found' => true,
+                'is_registered' => false,
                 'name' => $registration->name,
                 'role_type' => $registration->role_type,
                 'school_class_id' => $registration->school_class_id,

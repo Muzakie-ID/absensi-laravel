@@ -86,6 +86,12 @@ export default function UserIndex({ auth, users, roles, classes }) {
             });
 
             if (response.data.found) {
+                if (response.data.is_registered) {
+                    setCheckMessage(response.data.message || 'Pengguna ini sudah terdaftar.');
+                    setCheckStatus('error');
+                    return;
+                }
+
                 setCheckMessage('Data ditemukan! Nama dan Peran telah diisi otomatis.');
                 setCheckStatus('success');
                 
