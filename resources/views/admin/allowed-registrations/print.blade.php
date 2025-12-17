@@ -35,10 +35,8 @@
     <!-- Header -->
     <div class="flex items-center justify-between mb-8 border-b-2 border-gray-800 pb-6">
         <div class="flex items-center gap-4">
-            <!-- Logo Placeholder -->
-            <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 font-bold text-xl">
-                LOGO
-            </div>
+            <!-- Logo -->
+            <img src="{{ asset('logo-smk-batik-perbaik-purworejo.png') }}" alt="Logo" class="w-16 h-16 object-contain">
             <div>
                 <h1 class="text-2xl font-bold uppercase tracking-wide text-gray-900">Data Kode Registrasi {{ $type == 'teacher' ? 'Guru' : 'Siswa' }}</h1>
                 <!--<h2 class="text-lg font-medium text-gray-600">Sistem Informasi Sekolah</h2>-->

@@ -25,6 +25,8 @@ export default function Login({ status, canResetPassword, canRegister }) {
         <GuestLayout>
             <Head title="Log in" />
 
+            <h2 className="text-2xl font-bold text-center mb-6 text-gray-900 dark:text-gray-100">Masuk</h2>
+
             {status && (
                 <div className="mb-4 text-sm font-medium text-green-600">
                     {status}

@@ -27,6 +27,8 @@ export default function Register() {
         <GuestLayout>
             <Head title="Register" />
 
+            <h2 className="text-2xl font-bold text-center mb-6 text-gray-900 dark:text-gray-100">Daftar</h2>
+
             <form onSubmit={submit}>
                 <div>
                     <InputLabel htmlFor="name" value="Name" />
