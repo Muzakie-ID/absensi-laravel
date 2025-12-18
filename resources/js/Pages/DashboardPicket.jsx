@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router, useForm } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Modal from '@/Components/Modal';
 import SecondaryButton from '@/Components/SecondaryButton';
 import PrimaryButton from '@/Components/PrimaryButton';
@@ -23,12 +23,25 @@ export default function DashboardPicket({ today, date, slotInfo, monitoringData,
     const [isSearching, setIsSearching] = useState(false);
     const [hasSearched, setHasSearched] = useState(false);
 
+    // Auto-refresh setiap 60 detik untuk memastikan data monitoring selalu update
+    useEffect(() => {
+        const interval = setInterval(() => {
+            router.reload({
+                only: ['monitoringData', 'slotInfo', 'currentSlotId', 'stats', 'allSlots', 'today', 'date', 'holiday', 'message', 'picketLogs', 'guestBooks', 'absentRecap'],
+                preserveScroll: true,
+                preserveState: true,
+            });
+        }, 60000);
+
+        return () => clearInterval(interval);
+    }, []);
+
     const handleSlotChange = (e) => {
         const slotId = e.target.value;
         router.get(route('admin.monitoring'), { slot_id: slotId }, {
             preserveState: true,
             preserveScroll: true,
-            only: ['monitoringData', 'slotInfo', 'currentSlotId', 'stats']
+            only: ['monitoringData', 'slotInfo', 'currentSlotId', 'stats', 'allSlots']
         });
     };
 
