@@ -85,6 +85,12 @@ export default function Dashboard({ schedule, today, date, holiday }) {
                                                         📷 Absen Masuk
                                                     </a>
                                                 )}
+
+                                                {slot.has_attended && (
+                                                    <span className="inline-flex items-center rounded-lg bg-green-100 px-4 py-2 text-sm font-medium text-green-800 dark:bg-green-900 dark:text-green-200">
+                                                        ✅ Sudah Absen
+                                                    </span>
+                                                )}
                                                 
                                                 {slot.is_disabled && (
                                                     <span className="inline-flex items-center rounded-full bg-yellow-100 px-3 py-1 text-xs font-medium text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">

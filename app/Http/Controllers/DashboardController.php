@@ -95,8 +95,14 @@ class DashboardController extends Controller
             ->get()
             ->keyBy('learning_sequence'); // Key array pakai sequence (1, 2, 3) biar gampang akses
 
+        // 4.5 Ambil Data Absensi Hari Ini untuk User Ini
+        $attendedScheduleIds = Attendance::where('user_id', $user->id)
+            ->whereDate('created_at', Carbon::today())
+            ->pluck('schedule_id')
+            ->toArray();
+
         // 5. Gabungkan Slot Waktu dengan Jadwal Guru (Mapping Logic)
-        $finalSchedule = $timeSlots->map(function ($slot) use ($teacherSchedules) {
+        $finalSchedule = $timeSlots->map(function ($slot) use ($teacherSchedules, $attendedScheduleIds) {
             $data = [
                 'id' => $slot->id,
                 'period_order' => $slot->period_order,
@@ -107,6 +113,7 @@ class DashboardController extends Controller
                 'subtitle' => '',
                 'status' => 'upcoming', // upcoming, ongoing, finished
                 'can_attend' => false,
+                'has_attended' => false,
             ];
 
             // Cek Status Waktu (Apakah jam ini sedang berlangsung?)
@@ -142,8 +149,16 @@ class DashboardController extends Controller
                     if ($schedule->schoolClass->classStatus && $schedule->schoolClass->classStatus->code === 'active') {
                         $data['title'] = $schedule->schoolClass->name;
                         $data['subtitle'] = $schedule->subject->name;
-                        $data['can_attend'] = true; // Tombol absen muncul
                         $data['schedule_id'] = $schedule->id; // ID untuk absen
+
+                        // Cek apakah sudah absen
+                        if (in_array($schedule->id, $attendedScheduleIds)) {
+                            $data['can_attend'] = false;
+                            $data['has_attended'] = true;
+                        } else {
+                            $data['can_attend'] = true; // Tombol absen muncul
+                            $data['has_attended'] = false;
+                        }
                     } else {
                         $data['title'] = $schedule->schoolClass->name;
                         $data['subtitle'] = 'Kelas Sedang ' . ($schedule->schoolClass->classStatus ? strtoupper($schedule->schoolClass->classStatus->name) : 'TIDAK AKTIF');
