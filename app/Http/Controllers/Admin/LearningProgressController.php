@@ -14,7 +14,16 @@ class LearningProgressController extends Controller
     public function index(Request $request)
     {
         $classes = SchoolClass::orderBy('name')->get();
-        $subjects = Subject::orderBy('name')->get();
+        
+        $subjectsQuery = Subject::query();
+        
+        if ($request->filled('school_class_id')) {
+            $subjectsQuery->whereHas('schedules', function($q) use ($request) {
+                $q->where('class_id', $request->school_class_id);
+            });
+        }
+
+        $subjects = $subjectsQuery->orderBy('name')->get();
 
         $progress = null;
 

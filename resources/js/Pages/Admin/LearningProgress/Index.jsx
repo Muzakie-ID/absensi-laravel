@@ -17,6 +17,21 @@ export default function Index({ auth, classes, subjects, progress, filters }) {
         });
     };
 
+    const handleClassChange = (e) => {
+        const classId = e.target.value;
+        setSelectedClass(classId);
+        setSelectedSubject(''); // Reset subject selection
+        
+        // Reload page to filter subjects based on selected class
+        router.get(route('admin.learning-progress.index'), {
+            school_class_id: classId
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+            only: ['subjects', 'filters']
+        });
+    };
+
     return (
         <AuthenticatedLayout
             user={auth.user}
@@ -36,7 +51,7 @@ export default function Index({ auth, classes, subjects, progress, filters }) {
                                 </label>
                                 <select
                                     value={selectedClass}
-                                    onChange={(e) => setSelectedClass(e.target.value)}
+                                    onChange={handleClassChange}
                                     className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-900 dark:border-gray-600 dark:text-white"
                                     required
                                 >
