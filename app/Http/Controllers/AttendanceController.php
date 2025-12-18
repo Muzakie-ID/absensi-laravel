@@ -28,7 +28,7 @@ class AttendanceController extends Controller
         // Fitur Flashback: Ambil materi terakhir dari kelas & mapel yang sama
         $lastAttendance = Attendance::where('user_id', auth()->id())
             ->whereHas('schedule', function ($query) use ($schedule) {
-                $query->where('school_class_id', $schedule->school_class_id)
+                $query->where('class_id', $schedule->class_id)
                       ->where('subject_id', $schedule->subject_id);
             })
             ->where('created_at', '<', now()->startOfDay()) // Hanya ambil yang sebelum hari ini

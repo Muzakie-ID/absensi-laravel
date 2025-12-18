@@ -21,7 +21,7 @@ class LearningProgressController extends Controller
         if ($request->has(['school_class_id', 'subject_id'])) {
             $progress = Attendance::with(['user', 'schedule'])
                 ->whereHas('schedule', function ($query) use ($request) {
-                    $query->where('school_class_id', $request->school_class_id)
+                    $query->where('class_id', $request->school_class_id)
                           ->where('subject_id', $request->subject_id);
                 })
                 ->whereNotNull('notes') // Hanya yang ada catatan materinya
