@@ -87,9 +87,23 @@ export default function Dashboard({ schedule, today, date, holiday }) {
                                                 )}
 
                                                 {slot.has_attended && (
-                                                    <span className="inline-flex items-center rounded-lg bg-green-100 px-4 py-2 text-sm font-medium text-green-800 dark:bg-green-900 dark:text-green-200">
-                                                        ✅ Sudah Absen
-                                                    </span>
+                                                    <div className="mt-2 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-100 dark:border-green-800">
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-200">
+                                                                ✅ Sudah Absen
+                                                            </span>
+                                                            <span className="text-xs font-semibold uppercase text-gray-600 dark:text-gray-300">
+                                                                • {slot.attendance_detail?.status === 'present' ? 'Hadir' : 
+                                                                   slot.attendance_detail?.status === 'late' ? 'Terlambat' :
+                                                                   slot.attendance_detail?.status === 'sick' ? 'Sakit' : 'Izin'}
+                                                            </span>
+                                                        </div>
+                                                        {slot.attendance_detail?.notes && (
+                                                            <p className="text-sm text-gray-600 dark:text-gray-400 italic">
+                                                                "{slot.attendance_detail.notes}"
+                                                            </p>
+                                                        )}
+                                                    </div>
                                                 )}
                                                 
                                                 {slot.is_disabled && (

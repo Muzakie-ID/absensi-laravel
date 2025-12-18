@@ -96,13 +96,13 @@ class DashboardController extends Controller
             ->keyBy('learning_sequence'); // Key array pakai sequence (1, 2, 3) biar gampang akses
 
         // 4.5 Ambil Data Absensi Hari Ini untuk User Ini
-        $attendedScheduleIds = Attendance::where('user_id', $user->id)
+        $attendances = Attendance::where('user_id', $user->id)
             ->whereDate('created_at', Carbon::today())
-            ->pluck('schedule_id')
-            ->toArray();
+            ->get()
+            ->keyBy('schedule_id');
 
         // 5. Gabungkan Slot Waktu dengan Jadwal Guru (Mapping Logic)
-        $finalSchedule = $timeSlots->map(function ($slot) use ($teacherSchedules, $attendedScheduleIds) {
+        $finalSchedule = $timeSlots->map(function ($slot) use ($teacherSchedules, $attendances) {
             $data = [
                 'id' => $slot->id,
                 'period_order' => $slot->period_order,
@@ -114,6 +114,7 @@ class DashboardController extends Controller
                 'status' => 'upcoming', // upcoming, ongoing, finished
                 'can_attend' => false,
                 'has_attended' => false,
+                'attendance_detail' => null,
             ];
 
             // Cek Status Waktu (Apakah jam ini sedang berlangsung?)
@@ -152,9 +153,14 @@ class DashboardController extends Controller
                         $data['schedule_id'] = $schedule->id; // ID untuk absen
 
                         // Cek apakah sudah absen
-                        if (in_array($schedule->id, $attendedScheduleIds)) {
+                        if (isset($attendances[$schedule->id])) {
+                            $attendance = $attendances[$schedule->id];
                             $data['can_attend'] = false;
                             $data['has_attended'] = true;
+                            $data['attendance_detail'] = [
+                                'status' => $attendance->status,
+                                'notes' => $attendance->notes,
+                            ];
                         } else {
                             $data['can_attend'] = true; // Tombol absen muncul
                             $data['has_attended'] = false;
