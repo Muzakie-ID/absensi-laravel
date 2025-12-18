@@ -51,7 +51,22 @@ class AttendanceController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        $path = $request->file('photo')->store('attendance_photos', 'public');
+        // Debugging Upload
+        if (!$request->hasFile('photo')) {
+            return back()->withErrors(['photo' => 'File foto tidak terdeteksi.']);
+        }
+
+        $file = $request->file('photo');
+
+        if (!$file->isValid()) {
+            return back()->withErrors(['photo' => 'Upload gagal: ' . $file->getErrorMessage()]);
+        }
+
+        $path = $file->store('attendance_photos', 'public');
+
+        if (!$path) {
+            return back()->withErrors(['photo' => 'Gagal menyimpan file ke server. Cek izin folder storage.']);
+        }
 
         Attendance::create([
             'schedule_id' => $schedule->id,
