@@ -3,6 +3,7 @@ services:
   # 1. LAYANAN APLIKASI (Laravel + PHP-FPM + Node.js/Vite)
   # ====================================================================
   laravel-inertia-app:
+    # ... build, image, container_name, volumes ...
     build:
       context: .
       dockerfile: docker/Dockerfile-laravel
@@ -12,6 +13,7 @@ services:
       - .:/var/www/html
       - vendor-cache:/var/www/html/vendor
       - node_modules-cache:/var/www/html/node_modules
+      - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
     ports:
       - "5173:5173" # Untuk Vite HMR (Pengembangan)
     env_file:
