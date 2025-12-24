@@ -1,59 +1,121 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Sistem Informasi Manajemen KBM & Absensi (SIM KBM)
+**SMK Batik Perbaik Purworejo**
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+![Laravel](https://img.shields.io/badge/Laravel-11-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)
+![React](https://img.shields.io/badge/React-Inertia-61DAFB?style=for-the-badge&logo=react&logoColor=black)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 
-## About Laravel
+Aplikasi berbasis web yang dirancang untuk memodernisasi proses presensi guru, monitoring Kegiatan Belajar Mengajar (KBM), dan pelaporan kinerja di lingkungan sekolah.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🚀 Fitur Utama
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### 📱 Absensi Guru Modern
+- **Bukti Foto**: Wajib upload foto (selfie/suasana kelas) saat absen.
+- **Geolocation**: Mencatat koordinat lokasi saat absen.
+- **Status Kehadiran**: Hadir, Terlambat (hitung menit), Izin, Sakit.
+- **Flashback Materi**: Menampilkan catatan materi pertemuan sebelumnya sebagai referensi.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 🖥️ Dashboard Monitoring (Piket)
+- **Real-time Monitoring**: Petugas piket dapat melihat status setiap kelas pada jam pelajaran yang sedang berlangsung (Hadir/Kosong/Izin).
+- **Buku Piket Digital**: Mencatat kejadian penting atau izin siswa.
+- **Buku Tamu**: Pencatatan tamu sekolah secara digital.
+- **Auto-Refresh**: Data monitoring diperbarui otomatis setiap menit.
 
-## Learning Laravel
+### 📊 Manajemen & Laporan
+- **Jadwal Pelajaran**: Manajemen template jadwal, slot waktu, dan plotting guru.
+- **Rekapan Kinerja**: Laporan otomatis kehadiran guru, total keterlambatan, dan persentase kehadiran.
+- **Export PDF**: Cetak laporan kinerja bulanan dengan format resmi (Kop Surat Sekolah).
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+### 👥 Multi-Role User
+- **Admin**: Akses penuh pengaturan sistem.
+- **Guru**: Absensi, lihat jadwal, riwayat mengajar.
+- **Piket**: Monitoring KBM, input izin manual.
+- **Siswa**: Lihat jadwal pelajaran (View Only).
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 🛠️ Teknologi yang Digunakan
 
-## Laravel Sponsors
+- **Backend**: Laravel 11
+- **Frontend**: React.js (via Inertia.js)
+- **Styling**: Tailwind CSS
+- **Database**: MySQL
+- **Server**: Nginx, PHP-FPM
+- **Containerization**: Docker & Docker Compose
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## 📦 Instalasi & Penggunaan
 
-### Premium Partners
+### Prasyarat
+- PHP >= 8.2
+- Composer
+- Node.js & NPM
+- MySQL
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### Cara Install (Local Development)
 
-## Contributing
+1. **Clone Repository**
+   ```bash
+   git clone https://github.com/username/repo-name.git
+   cd repo-name
+   ```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+2. **Install Dependencies**
+   ```bash
+   composer install
+   npm install
+   ```
 
-## Code of Conduct
+3. **Konfigurasi Environment**
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+   *Sesuaikan konfigurasi database di file `.env`.*
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+4. **Migrasi Database**
+   ```bash
+   php artisan migrate --seed
+   ```
 
-## Security Vulnerabilities
+5. **Jalankan Aplikasi**
+   ```bash
+   npm run dev
+   # Di terminal terpisah:
+   php artisan serve
+   ```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 🐳 Cara Deploy dengan Docker (VPS)
 
-## License
+Aplikasi ini sudah dilengkapi konfigurasi Docker siap pakai (Production Ready).
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+1. **Setup Environment**
+   Pastikan file `.env` sudah disesuaikan untuk production (APP_ENV=production, DB_HOST=mysql_db, dll).
+
+2. **Build & Run Container**
+   ```bash
+   docker-compose build --no-cache
+   docker-compose up -d
+   ```
+
+3. **Setup Awal (Hanya sekali)**
+   ```bash
+   # Install dependencies & generate key
+   docker-compose exec laravel-inertia-app composer install --no-dev --optimize-autoloader
+   docker-compose exec laravel-inertia-app php artisan key:generate
+   
+   # Migrasi Database
+   docker-compose exec laravel-inertia-app php artisan migrate --force
+   
+   # Link Storage (PENTING untuk foto absensi)
+   docker-compose exec laravel-inertia-app php artisan storage:link
+   
+   # Fix Permission (Jika upload gagal)
+   docker-compose exec -u root laravel-inertia-app chmod -R 777 storage
+   ```
+
+## 📸 Screenshot
+
+*(Tambahkan screenshot aplikasi di sini)*
+
+## 📄 Lisensi
+
+[MIT License](LICENSE)
