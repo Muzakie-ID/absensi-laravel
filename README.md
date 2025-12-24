@@ -92,24 +92,24 @@ Aplikasi ini sudah dilengkapi konfigurasi Docker siap pakai (Production Ready).
 
 2. **Build & Run Container**
    ```bash
-   docker-compose build --no-cache
-   docker-compose up -d
+   docker compose build --no-cache
+   docker compose up -d
    ```
 
 3. **Setup Awal (Hanya sekali)**
    ```bash
    # Install dependencies & generate key
-   docker-compose exec laravel-inertia-app composer install --no-dev --optimize-autoloader
-   docker-compose exec laravel-inertia-app php artisan key:generate
+   docker compose exec laravel-inertia-app composer install --no-dev --optimize-autoloader
+   docker compose exec laravel-inertia-app php artisan key:generate
    
    # Migrasi Database
-   docker-compose exec laravel-inertia-app php artisan migrate --force
+   docker compose exec laravel-inertia-app php artisan migrate --force
    
    # Link Storage (PENTING untuk foto absensi)
-   docker-compose exec laravel-inertia-app php artisan storage:link
+   docker compose exec laravel-inertia-app php artisan storage:link
    
    # Fix Permission (Jika upload gagal)
-   docker-compose exec -u root laravel-inertia-app chmod -R 777 storage
+   docker compose exec -u root laravel-inertia-app chmod -R 777 storage
    ```
 
 ## 📸 Screenshot
