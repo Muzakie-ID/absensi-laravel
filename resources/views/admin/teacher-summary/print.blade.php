@@ -26,7 +26,7 @@
     <!-- Header Laporan -->
     <div class="text-center mb-8 border-b-2 border-gray-800 pb-4">
         <h1 class="text-2xl font-bold uppercase">Laporan Kinerja Guru</h1>
-        <h2 class="text-xl font-semibold">{{ config('app.name', 'Sekolah') }}</h2>
+        <h2 class="text-xl font-semibold">SMK Batik Perbaik Purworejo</h2>
         <p class="text-sm text-gray-600">Periode: {{ \Carbon\Carbon::createFromDate($filters['year'], $filters['month'], 1)->translatedFormat('F Y') }}</p>
     </div>
 
@@ -55,14 +55,10 @@
     <!-- Ringkasan Kinerja -->
     <div class="mb-8">
         <h3 class="text-lg font-bold mb-4 border-b border-gray-300 pb-1">Ringkasan Kinerja</h3>
-        <div class="grid grid-cols-4 gap-4 text-center">
+        <div class="grid grid-cols-3 gap-4 text-center">
             <div class="border p-4 rounded bg-gray-50">
                 <div class="text-xs text-gray-500 uppercase">Persentase Kehadiran</div>
                 <div class="text-xl font-bold">{{ $stats['attendance_percentage'] }}%</div>
-            </div>
-            <div class="border p-4 rounded bg-gray-50">
-                <div class="text-xs text-gray-500 uppercase">Total Keterlambatan</div>
-                <div class="text-xl font-bold">{{ $stats['total_late_minutes'] }} Menit</div>
             </div>
             <div class="border p-4 rounded bg-gray-50">
                 <div class="text-xs text-gray-500 uppercase">Izin / Sakit</div>
