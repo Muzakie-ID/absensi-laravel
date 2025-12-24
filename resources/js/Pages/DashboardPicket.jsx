@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router, useForm } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Modal from '@/Components/Modal';
 import SecondaryButton from '@/Components/SecondaryButton';
 import PrimaryButton from '@/Components/PrimaryButton';
@@ -21,13 +21,27 @@ export default function DashboardPicket({ today, date, slotInfo, monitoringData,
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
+    const [hasSearched, setHasSearched] = useState(false);
+
+    // Auto-refresh setiap 60 detik untuk memastikan data monitoring selalu update
+    useEffect(() => {
+        const interval = setInterval(() => {
+            router.reload({
+                only: ['monitoringData', 'slotInfo', 'currentSlotId', 'stats', 'allSlots', 'today', 'date', 'holiday', 'message', 'picketLogs', 'guestBooks', 'absentRecap'],
+                preserveScroll: true,
+                preserveState: true,
+            });
+        }, 60000);
+
+        return () => clearInterval(interval);
+    }, []);
 
     const handleSlotChange = (e) => {
         const slotId = e.target.value;
         router.get(route('admin.monitoring'), { slot_id: slotId }, {
             preserveState: true,
             preserveScroll: true,
-            only: ['monitoringData', 'slotInfo', 'currentSlotId', 'stats']
+            only: ['monitoringData', 'slotInfo', 'currentSlotId', 'stats', 'allSlots']
         });
     };
 
@@ -110,6 +124,7 @@ export default function DashboardPicket({ today, date, slotInfo, monitoringData,
     const handleSearch = async (e) => {
         e.preventDefault();
         setIsSearching(true);
+        setHasSearched(true);
         try {
             const response = await axios.get(route('picket.search-schedule'), {
                 params: { query: searchQuery }
@@ -673,7 +688,10 @@ export default function DashboardPicket({ today, date, slotInfo, monitoringData,
                                             <input
                                                 type="text"
                                                 value={searchQuery}
-                                                onChange={(e) => setSearchQuery(e.target.value)}
+                                                onChange={(e) => {
+                                                    setSearchQuery(e.target.value);
+                                                    setHasSearched(false);
+                                                }}
                                                 placeholder="Ketik nama guru atau nama kelas..."
                                                 className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                                             />
@@ -706,7 +724,7 @@ export default function DashboardPicket({ today, date, slotInfo, monitoringData,
                                                 ))}
                                             </div>
                                         ) : (
-                                            searchQuery && !isSearching && (
+                                            searchQuery && !isSearching && hasSearched && (
                                                 <p className="text-center text-gray-500 dark:text-gray-400">
                                                     Tidak ditemukan jadwal untuk pencarian "{searchQuery}".
                                                 </p>

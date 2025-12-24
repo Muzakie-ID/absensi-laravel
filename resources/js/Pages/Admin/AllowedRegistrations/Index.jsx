@@ -77,9 +77,49 @@ export default function AllowedRegistrationIndex({ auth, registrations, type, fi
         });
     };
 
-    const handleTypeChange = (newType) => {
-        router.get(route('admin.allowed-registrations.index'), { type: newType }, { preserveState: true });
+    const [search, setSearch] = useState(filters.search || '');
+    const [perPage, setPerPage] = useState(filters.per_page || 10);
+
+    const handleSearch = (e) => {
+        const value = e.target.value;
+        setSearch(value);
+        router.get(
+            route('admin.allowed-registrations.index'),
+            { type, search: value, per_page: perPage },
+            { preserveState: true, replace: true }
+        );
     };
+
+    const handlePerPageChange = (e) => {
+        const value = e.target.value;
+        setPerPage(value);
+        router.get(
+            route('admin.allowed-registrations.index'),
+            { type, search, per_page: value },
+            { preserveState: true }
+        );
+    };
+
+    const handleTypeChange = (newType) => {
+        router.get(route('admin.allowed-registrations.index'), { type: newType, per_page: perPage }, { preserveState: true });
+    };
+
+    if (!registrations || !registrations.data) {
+        return (
+            <AuthenticatedLayout
+                user={auth.user}
+                header={<h2 className="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">Master Data</h2>}
+            >
+                <div className="py-12">
+                    <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                        <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6 text-center text-gray-500">
+                            Memuat data...
+                        </div>
+                    </div>
+                </div>
+            </AuthenticatedLayout>
+        );
+    }
 
     return (
         <AuthenticatedLayout
@@ -116,11 +156,34 @@ export default function AllowedRegistrationIndex({ auth, registrations, type, fi
                             </button>
                         </div>
 
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                                Daftar {type === 'teacher' ? 'Guru' : 'Siswa'} (Whitelist)
-                            </h3>
-                            <div className="flex gap-2">
+                        <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+                            <div className="flex items-center gap-4 w-full sm:w-auto">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm text-gray-600 dark:text-gray-400">Show</span>
+                                    <select
+                                        value={perPage}
+                                        onChange={handlePerPageChange}
+                                        className="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm text-sm"
+                                    >
+                                        <option value="10">10</option>
+                                        <option value="25">25</option>
+                                        <option value="50">50</option>
+                                        <option value="100">100</option>
+                                    </select>
+                                    <span className="text-sm text-gray-600 dark:text-gray-400">entries</span>
+                                </div>
+                                <div className="w-full sm:w-64">
+                                    <TextInput
+                                        type="text"
+                                        value={search}
+                                        onChange={handleSearch}
+                                        placeholder="Cari Nama atau Kode..."
+                                        className="w-full"
+                                    />
+                                </div>
+                            </div>
+                            
+                            <div className="flex gap-2 w-full sm:w-auto justify-end">
                                 <a
                                     href={route('admin.allowed-registrations.export', { type })}
                                     target="_blank"
@@ -139,10 +202,10 @@ export default function AllowedRegistrationIndex({ auth, registrations, type, fi
                                 <thead className="bg-gray-50 dark:bg-gray-700">
                                     <tr>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            {type === 'teacher' ? 'NIP' : 'NIS'}
+                                            {type === 'teacher' ? 'Kode Guru' : 'NIS'}
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Nama Lengkap</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Kode Kupon</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Kode Registrasi</th>
                                         {type === 'student' && (
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Kelas</th>
                                         )}
@@ -197,7 +260,7 @@ export default function AllowedRegistrationIndex({ auth, registrations, type, fi
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan="4" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                                            <td colSpan={type === 'student' ? 6 : 5} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
                                                 Belum ada data.
                                             </td>
                                         </tr>
@@ -211,16 +274,24 @@ export default function AllowedRegistrationIndex({ auth, registrations, type, fi
                             <div className="mt-4 flex justify-center">
                                 <div className="flex gap-1">
                                     {registrations.links.map((link, k) => (
-                                        <Link
-                                            key={k}
-                                            href={link.url}
-                                            className={`px-3 py-1 border rounded text-sm ${
-                                                link.active
-                                                    ? 'bg-indigo-600 text-white border-indigo-600'
-                                                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600'
-                                            } ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                            dangerouslySetInnerHTML={{ __html: link.label }}
-                                        />
+                                        link.url ? (
+                                            <Link
+                                                key={k}
+                                                href={link.url}
+                                                className={`px-3 py-1 border rounded text-sm ${
+                                                    link.active
+                                                        ? 'bg-indigo-600 text-white border-indigo-600'
+                                                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600'
+                                                }`}
+                                                dangerouslySetInnerHTML={{ __html: link.label }}
+                                            />
+                                        ) : (
+                                            <span
+                                                key={k}
+                                                className="px-3 py-1 border rounded text-sm bg-white text-gray-400 border-gray-300 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500 dark:border-gray-600"
+                                                dangerouslySetInnerHTML={{ __html: link.label }}
+                                            />
+                                        )
                                     ))}
                                 </div>
                             </div>
@@ -237,7 +308,7 @@ export default function AllowedRegistrationIndex({ auth, registrations, type, fi
                     </h2>
 
                     <div className="mb-4">
-                        <InputLabel htmlFor="identity_number" value={type === 'teacher' ? 'NIP' : 'NIS'} className="dark:text-gray-300" />
+                        <InputLabel htmlFor="identity_number" value={type === 'teacher' ? 'Kode Guru' : 'NIS'} className="dark:text-gray-300" />
                         <TextInput
                             id="identity_number"
                             type="text"
@@ -273,7 +344,7 @@ export default function AllowedRegistrationIndex({ auth, registrations, type, fi
                                 onChange={(e) => setData('school_class_id', e.target.value)}
                             >
                                 <option value="">Pilih Kelas</option>
-                                {classes && classes.map((cls) => (
+                                {Array.isArray(classes) && classes.map((cls) => (
                                     <option key={cls.id} value={cls.id}>
                                         {cls.name}
                                     </option>

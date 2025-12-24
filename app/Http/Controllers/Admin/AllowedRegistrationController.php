@@ -13,11 +13,22 @@ class AllowedRegistrationController extends Controller
     public function index(Request $request)
     {
         $type = $request->input('type', 'teacher'); // Default teacher
+        $search = $request->input('search');
+        $perPage = $request->input('per_page', 10);
         
-        $registrations = AllowedRegistration::where('role_type', $type)
-            ->with('schoolClass')
-            ->latest()
-            ->paginate(10)
+        $query = AllowedRegistration::where('role_type', $type)
+            ->with('schoolClass');
+
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('identity_number', 'like', "%{$search}%")
+                  ->orWhere('registration_code', 'like', "%{$search}%");
+            });
+        }
+
+        $registrations = $query->orderByRaw('CAST(identity_number AS UNSIGNED) ASC')
+            ->paginate($perPage)
             ->withQueryString();
 
         $classes = SchoolClass::whereHas('classStatus', function($q) {
@@ -28,7 +39,7 @@ class AllowedRegistrationController extends Controller
             'registrations' => $registrations,
             'type' => $type,
             'classes' => $classes,
-            'filters' => $request->only(['search', 'type'])
+            'filters' => $request->only(['search', 'type', 'per_page'])
         ]);
     }
 
@@ -72,20 +83,33 @@ class AllowedRegistrationController extends Controller
             'identity_number' => 'required|string',
         ]);
 
-        $registration = AllowedRegistration::where('identity_number', $request->identity_number)->first();
+        $registration = AllowedRegistration::where('identity_number', $request->identity_number)
+            ->orWhere('registration_code', $request->identity_number)
+            ->first();
 
         if ($registration) {
+            if ($registration->is_registered) {
+                return response()->json([
+                    'found' => true,
+                    'is_registered' => true,
+                    'message' => 'Pengguna ini sudah terdaftar dalam sistem.',
+                    'name' => $registration->name,
+                ]);
+            }
+
             return response()->json([
                 'found' => true,
+                'is_registered' => false,
                 'name' => $registration->name,
                 'role_type' => $registration->role_type,
                 'school_class_id' => $registration->school_class_id,
+                'identity_number' => $registration->identity_number, // Return the real identity number if found by code
             ]);
         }
 
         return response()->json([
             'found' => false,
-            'message' => 'Data tidak ditemukan di whitelist.',
+            'message' => 'Data tidak ditemukan di whitelist (Cek NIP/NIS atau Kode Registrasi).',
         ]);
     }
 

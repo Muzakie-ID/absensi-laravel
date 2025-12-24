@@ -122,4 +122,48 @@ class ScheduleTemplateController extends Controller
         $timeSlot->delete();
         return redirect()->back()->with('success', 'Slot waktu berhasil dihapus.');
     }
+
+    public function destroyAllTimeSlots(Request $request, ScheduleTemplate $scheduleTemplate)
+    {
+        $request->validate([
+            'day' => 'required|in:senin,selasa,rabu,kamis,jumat,sabtu,minggu',
+        ]);
+
+        $scheduleTemplate->timeSlots()->where('day', $request->day)->delete();
+
+        return redirect()->back()->with('success', 'Semua slot waktu pada hari ' . $request->day . ' berhasil dihapus.');
+    }
+
+    public function copyTimeSlots(Request $request, ScheduleTemplate $scheduleTemplate)
+    {
+        $request->validate([
+            'from_day' => 'required|in:senin,selasa,rabu,kamis,jumat,sabtu,minggu',
+            'to_days' => 'required|array',
+            'to_days.*' => 'in:senin,selasa,rabu,kamis,jumat,sabtu,minggu',
+        ]);
+
+        $sourceSlots = $scheduleTemplate->timeSlots()->where('day', $request->from_day)->get();
+
+        if ($sourceSlots->isEmpty()) {
+            return redirect()->back()->with('error', 'Tidak ada slot waktu pada hari sumber.');
+        }
+
+        DB::transaction(function () use ($scheduleTemplate, $sourceSlots, $request) {
+            foreach ($request->to_days as $targetDay) {
+                if ($targetDay === $request->from_day) continue;
+
+                // Hapus slot lama di hari target
+                $scheduleTemplate->timeSlots()->where('day', $targetDay)->delete();
+
+                foreach ($sourceSlots as $slot) {
+                    $newSlot = $slot->replicate();
+                    $newSlot->day = $targetDay;
+                    $newSlot->schedule_template_id = $scheduleTemplate->id;
+                    $newSlot->save();
+                }
+            }
+        });
+
+        return redirect()->back()->with('success', 'Slot waktu berhasil disalin.');
+    }
 }

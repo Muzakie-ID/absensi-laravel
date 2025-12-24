@@ -71,7 +71,7 @@ export default function UserIndex({ auth, users, roles, classes }) {
 
     const checkIdentity = async () => {
         if (!data.identity_number) {
-            setCheckMessage('Masukkan NIP / NIS terlebih dahulu.');
+            setCheckMessage('Masukkan Kode Guru / NIS / Kode Registrasi terlebih dahulu.');
             setCheckStatus('error');
             return;
         }
@@ -86,6 +86,12 @@ export default function UserIndex({ auth, users, roles, classes }) {
             });
 
             if (response.data.found) {
+                if (response.data.is_registered) {
+                    setCheckMessage(response.data.message || 'Pengguna ini sudah terdaftar.');
+                    setCheckStatus('error');
+                    return;
+                }
+
                 setCheckMessage('Data ditemukan! Nama dan Peran telah diisi otomatis.');
                 setCheckStatus('success');
                 
@@ -99,7 +105,8 @@ export default function UserIndex({ auth, users, roles, classes }) {
                     ...prevData,
                     name: response.data.name,
                     role_id: matchedRole ? matchedRole.id : prevData.role_id,
-                    school_class_id: response.data.school_class_id || ''
+                    school_class_id: response.data.school_class_id || '',
+                    identity_number: response.data.identity_number || prevData.identity_number
                 }));
             } else {
                 setCheckMessage(response.data.message || 'Data tidak ditemukan.');
@@ -164,7 +171,7 @@ export default function UserIndex({ auth, users, roles, classes }) {
                             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                                 <thead className="bg-gray-50 dark:bg-gray-700">
                                     <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">NIP / NIS</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Kode Guru / NIS</th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Nama</th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Username</th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Email</th>
@@ -223,7 +230,7 @@ export default function UserIndex({ auth, users, roles, classes }) {
                     </h2>
 
                     <div className="mb-4">
-                        <InputLabel htmlFor="identity_number" value="NIP / NIS (Opsional)" className="dark:text-gray-300" />
+                        <InputLabel htmlFor="identity_number" value="Kode Guru / NIS / Kode Registrasi (Opsional)" className="dark:text-gray-300" />
                         <div className="flex gap-2">
                             <TextInput
                                 id="identity_number"

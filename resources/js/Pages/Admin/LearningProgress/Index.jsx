@@ -17,6 +17,21 @@ export default function Index({ auth, classes, subjects, progress, filters }) {
         });
     };
 
+    const handleClassChange = (e) => {
+        const classId = e.target.value;
+        setSelectedClass(classId);
+        setSelectedSubject(''); // Reset subject selection
+        
+        // Reload page to filter subjects based on selected class
+        router.get(route('admin.learning-progress.index'), {
+            school_class_id: classId
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+            only: ['subjects', 'filters']
+        });
+    };
+
     return (
         <AuthenticatedLayout
             user={auth.user}
@@ -36,7 +51,7 @@ export default function Index({ auth, classes, subjects, progress, filters }) {
                                 </label>
                                 <select
                                     value={selectedClass}
-                                    onChange={(e) => setSelectedClass(e.target.value)}
+                                    onChange={handleClassChange}
                                     className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-900 dark:border-gray-600 dark:text-white"
                                     required
                                 >
@@ -110,6 +125,22 @@ export default function Index({ auth, classes, subjects, progress, filters }) {
                                                 <div className="text-gray-800 dark:text-gray-200 mt-2">
                                                     <p className="italic">"{item.notes}"</p>
                                                 </div>
+
+                                                {item.photo_proof && (
+                                                    <div className="mt-3">
+                                                        <a 
+                                                            href={item.photo_proof} 
+                                                            target="_blank" 
+                                                            rel="noopener noreferrer"
+                                                            className="inline-flex items-center text-sm text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                            </svg>
+                                                            Lihat Bukti Foto
+                                                        </a>
+                                                    </div>
+                                                )}
 
                                                 {index === 0 && (
                                                     <div className="mt-3 inline-flex items-center px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">

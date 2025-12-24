@@ -10,13 +10,17 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import DangerButton from '@/Components/DangerButton';
 
 export default function ScheduleTemplateShow({ auth, template, timeSlots, activityTypes }) {
+    const days = ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu', 'minggu'];
     const [showModal, setShowModal] = useState(false);
     const [editingSlot, setEditingSlot] = useState(null);
     const [selectedDay, setSelectedDay] = useState('senin');
+    const [showCopyModal, setShowCopyModal] = useState(false);
+    const [copyFromDay, setCopyFromDay] = useState('senin');
+    const [copyToDays, setCopyToDays] = useState([]);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [slotToDelete, setSlotToDelete] = useState(null);
-
-    const days = ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu', 'minggu'];
+    const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
+    const [dayToDeleteAll, setDayToDeleteAll] = useState(null);
 
     const { data, setData, post, put, delete: destroy, processing, errors, reset } = useForm({
         day: 'senin',
@@ -25,6 +29,16 @@ export default function ScheduleTemplateShow({ auth, template, timeSlots, activi
         start_time: '',
         end_time: '',
         mapping_source: ''
+    });
+
+    const { data: copyData, setData: setCopyData, post: postCopy, processing: processingCopy, reset: resetCopy, errors: copyErrors } = useForm({
+        from_day: 'senin',
+        to_days: []
+    });
+
+    // Form khusus untuk delete all agar tidak konflik dengan form utama yang memiliki default day='senin'
+    const { data: deleteAllData, setData: setDeleteAllData, delete: destroyAll, processing: processingDeleteAll } = useForm({
+        day: ''
     });
 
     const openModal = (day, slot = null) => {
@@ -90,6 +104,51 @@ export default function ScheduleTemplateShow({ auth, template, timeSlots, activi
         });
     };
 
+    const openCopyModal = (day) => {
+        setCopyFromDay(day);
+        setCopyData({
+            from_day: day,
+            to_days: []
+        });
+        setShowCopyModal(true);
+    };
+
+    const closeCopyModal = () => {
+        setShowCopyModal(false);
+        resetCopy();
+    };
+
+    const handleCopySubmit = (e) => {
+        e.preventDefault();
+        postCopy(route('admin.schedule-templates.time-slots.copy', template.id), {
+            onSuccess: closeCopyModal
+        });
+    };
+
+    const handleDaySelection = (day) => {
+        const currentDays = copyData.to_days;
+        if (currentDays.includes(day)) {
+            setCopyData('to_days', currentDays.filter(d => d !== day));
+        } else {
+            setCopyData('to_days', [...currentDays, day]);
+        }
+    };
+
+    const confirmDeleteAll = (day) => {
+        setDeleteAllData('day', day);
+        setDayToDeleteAll(day);
+        setShowDeleteAllModal(true);
+    };
+
+    const handleDeleteAll = () => {
+        destroyAll(route('admin.schedule-templates.time-slots.destroy-all', template.id), {
+            onSuccess: () => {
+                setShowDeleteAllModal(false);
+                setDayToDeleteAll(null);
+            }
+        });
+    };
+
     return (
         <AuthenticatedLayout
             user={auth.user}
@@ -116,12 +175,28 @@ export default function ScheduleTemplateShow({ auth, template, timeSlots, activi
                             <div key={day} className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-4">
                                 <div className="flex justify-between items-center mb-4 border-b dark:border-gray-700 pb-2">
                                     <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 capitalize">{day}</h3>
-                                    <button
-                                        onClick={() => openModal(day)}
-                                        className="text-sm bg-indigo-50 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-200 px-3 py-1 rounded-md hover:bg-indigo-100 dark:hover:bg-indigo-800"
-                                    >
-                                        + Slot
-                                    </button>
+                                    <div className="flex gap-1">
+                                        <button
+                                            onClick={() => confirmDeleteAll(day)}
+                                            className="text-xs bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-300 px-2 py-1 rounded hover:bg-red-200 dark:hover:bg-red-800"
+                                            title="Hapus semua slot hari ini"
+                                        >
+                                            Hapus Semua
+                                        </button>
+                                        <button
+                                            onClick={() => openCopyModal(day)}
+                                            className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600"
+                                            title="Copy ke hari lain"
+                                        >
+                                            Copy
+                                        </button>
+                                        <button
+                                            onClick={() => openModal(day)}
+                                            className="text-xs bg-indigo-50 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-200 px-2 py-1 rounded hover:bg-indigo-100 dark:hover:bg-indigo-800"
+                                        >
+                                            + Slot
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <div className="space-y-3">
@@ -255,6 +330,49 @@ export default function ScheduleTemplateShow({ auth, template, timeSlots, activi
                 </form>
             </Modal>
 
+            {/* Copy Confirmation Modal */}
+            <Modal show={showCopyModal} onClose={closeCopyModal}>
+                <form onSubmit={handleCopySubmit} className="p-6 dark:bg-gray-800">
+                    <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
+                        Salin Slot Waktu dari <span className="capitalize font-bold">{copyFromDay}</span>
+                    </h2>
+                    
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                        Pilih hari tujuan untuk menyalin semua slot waktu. <br/>
+                        <span className="text-red-500 font-bold">PERINGATAN:</span> Slot waktu yang sudah ada di hari tujuan akan dihapus/ditimpa.
+                    </p>
+
+                    {copyErrors.to_days && (
+                        <div className="text-red-500 text-sm mb-4 bg-red-50 dark:bg-red-900/20 p-2 rounded">
+                            {copyErrors.to_days}
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-3 mb-6">
+                        {days.filter(d => d !== copyFromDay).map(day => (
+                            <label key={day} className="flex items-center space-x-3 p-3 border rounded cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 dark:border-gray-600">
+                                <input
+                                    type="checkbox"
+                                    className="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                    checked={copyData.to_days.includes(day)}
+                                    onChange={() => handleDaySelection(day)}
+                                />
+                                <span className="capitalize text-gray-700 dark:text-gray-300">{day}</span>
+                            </label>
+                        ))}
+                    </div>
+
+                    <div className="flex justify-end">
+                        <SecondaryButton onClick={closeCopyModal} className="mr-3">
+                            Batal
+                        </SecondaryButton>
+                        <PrimaryButton disabled={processingCopy || copyData.to_days.length === 0}>
+                            Salin Slot
+                        </PrimaryButton>
+                    </div>
+                </form>
+            </Modal>
+
             {/* Delete Confirmation Modal */}
             <Modal show={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
                 <div className="p-6 dark:bg-gray-800">
@@ -267,6 +385,26 @@ export default function ScheduleTemplateShow({ auth, template, timeSlots, activi
                         </SecondaryButton>
                         <DangerButton onClick={handleDelete} disabled={processing}>
                             Hapus
+                        </DangerButton>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Delete All Confirmation Modal */}
+            <Modal show={showDeleteAllModal} onClose={() => setShowDeleteAllModal(false)}>
+                <div className="p-6 dark:bg-gray-800">
+                    <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                        Hapus SEMUA slot waktu hari <span className="capitalize font-bold">{dayToDeleteAll}</span>?
+                    </h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                        Tindakan ini tidak dapat dibatalkan. Semua slot waktu pada hari tersebut akan dihapus permanen.
+                    </p>
+                    <div className="mt-6 flex justify-end">
+                        <SecondaryButton onClick={() => setShowDeleteAllModal(false)} className="mr-3">
+                            Batal
+                        </SecondaryButton>
+                        <DangerButton onClick={handleDeleteAll} disabled={processingDeleteAll}>
+                            Hapus Semua
                         </DangerButton>
                     </div>
                 </div>

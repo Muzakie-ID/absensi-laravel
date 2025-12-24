@@ -118,16 +118,11 @@ export default function Show({ auth, user, stats, journal, filters }) {
                     </div>
 
                     {/* Statistik KPI */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border-l-4 border-blue-500">
                             <p className="text-sm text-gray-500 dark:text-gray-400">Persentase Kehadiran</p>
                             <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.attendance_percentage}%</p>
                             <p className="text-xs text-gray-500">Hadir {stats.present} dari {stats.total_schedules} Jadwal</p>
-                        </div>
-                        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border-l-4 border-yellow-500">
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Total Keterlambatan</p>
-                            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.total_late_minutes} Menit</p>
-                            <p className="text-xs text-gray-500">{stats.late} kali terlambat</p>
                         </div>
                         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border-l-4 border-green-500">
                             <p className="text-sm text-gray-500 dark:text-gray-400">Izin / Sakit</p>

@@ -28,7 +28,7 @@ class AttendanceController extends Controller
         // Fitur Flashback: Ambil materi terakhir dari kelas & mapel yang sama
         $lastAttendance = Attendance::where('user_id', auth()->id())
             ->whereHas('schedule', function ($query) use ($schedule) {
-                $query->where('school_class_id', $schedule->school_class_id)
+                $query->where('class_id', $schedule->class_id)
                       ->where('subject_id', $schedule->subject_id);
             })
             ->where('created_at', '<', now()->startOfDay()) // Hanya ambil yang sebelum hari ini
@@ -51,7 +51,22 @@ class AttendanceController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        $path = $request->file('photo')->store('attendance_photos', 'public');
+        // Debugging Upload
+        if (!$request->hasFile('photo')) {
+            return back()->withErrors(['photo' => 'File foto tidak terdeteksi.']);
+        }
+
+        $file = $request->file('photo');
+
+        if (!$file->isValid()) {
+            return back()->withErrors(['photo' => 'Upload gagal: ' . $file->getErrorMessage()]);
+        }
+
+        $path = $file->store('attendance_photos', 'public');
+
+        if (!$path) {
+            return back()->withErrors(['photo' => 'Gagal menyimpan file ke server. Cek izin folder storage.']);
+        }
 
         Attendance::create([
             'schedule_id' => $schedule->id,

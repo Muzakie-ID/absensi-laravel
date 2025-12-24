@@ -70,7 +70,9 @@ export default function Create({ schedule, lastAttendance }) {
 
     const submit = (e) => {
         e.preventDefault();
-        post(route('attendance.store', schedule.id));
+        post(route('attendance.store', schedule.id), {
+            forceFormData: true,
+        });
     };
 
     return (

@@ -14,14 +14,23 @@ class LearningProgressController extends Controller
     public function index(Request $request)
     {
         $classes = SchoolClass::orderBy('name')->get();
-        $subjects = Subject::orderBy('name')->get();
+        
+        $subjectsQuery = Subject::query();
+        
+        if ($request->filled('school_class_id')) {
+            $subjectsQuery->whereHas('schedules', function($q) use ($request) {
+                $q->where('class_id', $request->school_class_id);
+            });
+        }
+
+        $subjects = $subjectsQuery->orderBy('name')->get();
 
         $progress = null;
 
         if ($request->has(['school_class_id', 'subject_id'])) {
             $progress = Attendance::with(['user', 'schedule'])
                 ->whereHas('schedule', function ($query) use ($request) {
-                    $query->where('school_class_id', $request->school_class_id)
+                    $query->where('class_id', $request->school_class_id)
                           ->where('subject_id', $request->subject_id);
                 })
                 ->whereNotNull('notes') // Hanya yang ada catatan materinya
@@ -34,6 +43,7 @@ class LearningProgressController extends Controller
                         'time' => $item->created_at->format('H:i'),
                         'teacher_name' => $item->user->name,
                         'notes' => $item->notes,
+                        'photo_proof' => $item->photo_proof ? asset('storage/' . $item->photo_proof) : null,
                         'status' => $item->status,
                         'is_substitute' => false, // Nanti bisa dikembangkan jika ada fitur guru pengganti
                     ];
