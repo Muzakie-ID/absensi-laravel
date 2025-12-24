@@ -54,7 +54,7 @@ Aplikasi berbasis web yang dirancang untuk memodernisasi proses presensi guru, m
 
 1. **Clone Repository**
    ```bash
-   git clone https://github.com/username/repo-name.git
+   git clone https://github.com/Muzakie-ID/absensi-laravel.git
    cd repo-name
    ```
 
