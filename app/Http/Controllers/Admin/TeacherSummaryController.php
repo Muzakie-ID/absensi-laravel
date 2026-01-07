@@ -183,10 +183,8 @@ class TeacherSummaryController extends Controller
                             $displayColor = $classStatus->color ?? 'gray';
                             $stats['total_schedules']--; // Tidak dihitung sebagai beban mengajar
                         } elseif ($currentDate->isFuture()) {
-                            $status = 'future';
-                            $displayLabel = 'Belum Mulai';
-                            $displayColor = 'gray';
                             $stats['total_schedules']--; // Jangan hitung sebagai beban
+                            continue; // Skip menampilkan jadwal masa depan
                         } else {
                             $stats['alpha']++;
                             $displayLabel = 'Alpha';
@@ -194,12 +192,28 @@ class TeacherSummaryController extends Controller
                         }
                     }
 
+                    // Snapshot Logic: Gunakan data historis jika ada (untuk menghandle tukar jam/perubahan jadwal)
+                    $snapshotClass = $attendance && !empty($attendance->class_name) 
+                        ? $attendance->class_name 
+                        : $schedule->schoolClass->name;
+                        
+                    $snapshotSubject = $attendance && !empty($attendance->subject_name) 
+                        ? $attendance->subject_name 
+                        : $schedule->subject->name;
+
+                    $snapshotTime = '-';
+                    if ($attendance && !empty($attendance->schedule_start_time) && !empty($attendance->schedule_end_time)) {
+                        $snapshotTime = substr($attendance->schedule_start_time, 0, 5) . ' - ' . substr($attendance->schedule_end_time, 0, 5);
+                    } else {
+                        $snapshotTime = $timeSlot ? substr($timeSlot->start_time, 0, 5) . ' - ' . substr($timeSlot->end_time, 0, 5) : '-';
+                    }
+
                     $journal[] = [
                         'date' => $dateStr,
                         'day' => ucfirst($dayName),
-                        'class' => $schedule->schoolClass->name,
-                        'subject' => $schedule->subject->name,
-                        'schedule_time' => $timeSlot ? substr($timeSlot->start_time, 0, 5) . ' - ' . substr($timeSlot->end_time, 0, 5) : '-',
+                        'class' => $snapshotClass,
+                        'subject' => $snapshotSubject,
+                        'schedule_time' => $snapshotTime,
                         'check_in' => $checkIn,
                         'check_out' => $checkOut,
                         'status' => $status,
