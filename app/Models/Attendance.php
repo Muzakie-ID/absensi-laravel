@@ -14,7 +14,11 @@ class Attendance extends Model
         'photo_proof',
         'location_lat',
         'location_long',
-        'check_in_time'
+        'check_in_time',
+        'subject_name',
+        'class_name',
+        'schedule_start_time',
+        'schedule_end_time'
     ];
 
     protected $casts = [

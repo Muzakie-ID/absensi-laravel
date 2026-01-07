@@ -375,7 +375,7 @@ class DashboardController extends Controller
             'notes' => 'nullable|string|max:255',
         ]);
 
-        $schedule = Schedule::findOrFail($request->schedule_id);
+        $schedule = Schedule::with(['subject', 'schoolClass'])->findOrFail($request->schedule_id);
         
         $attendance = Attendance::where('schedule_id', $schedule->id)
             ->whereDate('created_at', Carbon::today())
@@ -394,6 +394,23 @@ class DashboardController extends Controller
                 'notes' => $request->notes ?? $attendance->notes,
             ]);
         } else {
+            // Ambil data snapshot jadwal
+            $activeTemplate = ScheduleTemplate::where('is_active', true)->first();
+            $startTime = null;
+            $endTime = null;
+
+            if ($activeTemplate) {
+                $timeSlot = TimeSlot::where('schedule_template_id', $activeTemplate->id)
+                    ->where('day', $schedule->day)
+                    ->where('period_order', $schedule->learning_sequence)
+                    ->first();
+                
+                if ($timeSlot) {
+                    $startTime = $timeSlot->start_time;
+                    $endTime = $timeSlot->end_time;
+                }
+            }
+
             Attendance::create([
                 'schedule_id' => $schedule->id,
                 'user_id' => $schedule->user_id,
@@ -403,6 +420,10 @@ class DashboardController extends Controller
                 'notes' => $request->notes ?? 'Diupdate manual oleh Admin/Piket',
                 'location_lat' => '0',
                 'location_long' => '0',
+                'subject_name' => $schedule->subject->name,
+                'class_name' => $schedule->schoolClass->name,
+                'schedule_start_time' => $startTime,
+                'schedule_end_time' => $endTime,
             ]);
         }
 

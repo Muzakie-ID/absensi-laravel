@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Attendance;
 use App\Models\Schedule;
+use App\Models\ScheduleTemplate;
+use App\Models\TimeSlot;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -68,6 +70,23 @@ class AttendanceController extends Controller
             return back()->withErrors(['photo' => 'Gagal menyimpan file ke server. Cek izin folder storage.']);
         }
 
+        // Ambil data snapshot jadwal
+        $activeTemplate = ScheduleTemplate::where('is_active', true)->first();
+        $startTime = null;
+        $endTime = null;
+
+        if ($activeTemplate) {
+            $timeSlot = TimeSlot::where('schedule_template_id', $activeTemplate->id)
+                ->where('day', $schedule->day)
+                ->where('period_order', $schedule->learning_sequence)
+                ->first();
+            
+            if ($timeSlot) {
+                $startTime = $timeSlot->start_time;
+                $endTime = $timeSlot->end_time;
+            }
+        }
+
         Attendance::create([
             'schedule_id' => $schedule->id,
             'user_id' => auth()->id(),
@@ -77,6 +96,10 @@ class AttendanceController extends Controller
             'location_long' => $request->long ?? '0',
             'notes' => $request->notes,
             'check_in_time' => now(),
+            'subject_name' => $schedule->subject->name,
+            'class_name' => $schedule->schoolClass->name,
+            'schedule_start_time' => $startTime,
+            'schedule_end_time' => $endTime,
         ]);
 
         return redirect()->route('dashboard')->with('success', 'Absensi berhasil dicatat!');
