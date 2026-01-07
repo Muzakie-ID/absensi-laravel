@@ -43,7 +43,9 @@ class LearningProgressController extends Controller
                         'time' => $item->created_at->format('H:i'),
                         'teacher_name' => $item->user->name,
                         'notes' => $item->notes,
-                        'photo_proof' => $item->photo_proof ? asset('storage/' . $item->photo_proof) : null,
+                        'photo_proof' => ($item->photo_proof && $item->photo_proof !== 'manual_override') 
+                            ? asset('storage/' . $item->photo_proof) 
+                            : null,
                         'status' => $item->status,
                         'is_substitute' => false, // Nanti bisa dikembangkan jika ada fitur guru pengganti
                     ];
