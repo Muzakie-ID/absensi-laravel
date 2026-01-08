@@ -13,6 +13,25 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+// Web Cron Route (Untuk External Cronjob Service)
+Route::get('/scheduler/run', function () {
+    // Simple Security: Cek Token di URL
+    // Contoh: https://domain.com/scheduler/run?key=RAHASIA123
+    $key = request('key');
+    $validKey = config('app.key'); // Atau gunakan env('CRON_KEY') agar lebih aman
+
+    if (!$key || $key !== env('CRON_KEY', 'default-cron-secret')) {
+        abort(403, 'Unauthorized endpoint');
+    }
+
+    \Illuminate\Support\Facades\Artisan::call('schedule:run');
+    
+    return response()->json([
+        'message' => 'Scheduler executed',
+        'output' => \Illuminate\Support\Facades\Artisan::output()
+    ]);
+});
+
 Route::get('/', function () {
     return redirect()->route('login');
 });

@@ -126,6 +126,22 @@ Aplikasi ini sudah dilengkapi konfigurasi Docker siap pakai (Production Ready).
    ```
    *(Ganti `/path/ke/folder/absensi-laravel` dengan lokasi folder proyek Anda di VPS)*
 
+   **ATAU: Menggunakan Web Cron (EasyCron / Cron-Job.org)**
+   
+   Jika Anda menggunakan hosting yang tidak mendukung akses shell/crontab (atau ingin menggunakan layanan pihak ketiga):
+   
+   1. Tambahkan variabel ini di file `.env`:
+      ```env
+      CRON_KEY=rahasia-sekolah-2025
+      ```
+      *(Ganti dengan password acak yang aman)*
+      
+   2. Daftarkan URL berikut di layanan Cronjob External:
+      ```
+      https://domain-anda.com/scheduler/run?key=rahasia-sekolah-2025
+      ```
+   3. Set interval menjadi **Setiap Menit** (atau minimal 5 menit sekali).
+
 ## 📸 Screenshot
 
 *(Tambahkan screenshot aplikasi di sini)*
