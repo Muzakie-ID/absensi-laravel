@@ -112,6 +112,20 @@ Aplikasi ini sudah dilengkapi konfigurasi Docker siap pakai (Production Ready).
    docker compose exec -u root laravel-inertia-app chmod -R 777 storage
    ```
 
+4. **Setup Cronjob (Untuk Auto Alpha)**
+   
+   Agar sistem otomatis menandai "Alpha" bagi guru yang tidak absen hingga jam 23:59, tambahkan crontab di VPS:
+   
+   ```bash
+   crontab -e
+   ```
+   
+   Tambahkan baris berikut di paling bawah:
+   ```bash
+   * * * * * cd /path/ke/folder/absensi-laravel && docker compose exec -T laravel-inertia-app php artisan schedule:run >> /dev/null 2>&1
+   ```
+   *(Ganti `/path/ke/folder/absensi-laravel` dengan lokasi folder proyek Anda di VPS)*
+
 ## 📸 Screenshot
 
 *(Tambahkan screenshot aplikasi di sini)*

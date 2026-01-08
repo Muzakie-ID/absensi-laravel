@@ -115,16 +115,22 @@ class TeacherSummaryController extends Controller
 
             if (isset($schedules[$dayName]) && !$isHoliday) {
                 foreach ($schedules[$dayName] as $schedule) {
+                    // Cari Absensi
+                    $attendanceKey = $dateStr . '-' . $schedule->id;
+                    $attendance = $attendances[$attendanceKey] ?? null;
+
+                    // FIX: Jangan tampilkan "Alpha" jika tanggal laporan < tanggal pembuatan jadwal
+                    // Ini mencegah laporan tahun lalu merah semua karena memakai jadwal baru
+                    if (!$attendance && $currentDate->endOfDay()->lt($schedule->created_at)) {
+                        continue;
+                    }
+
                     $stats['total_schedules']++;
                     
                     // Cari Time Slot
                     $timeSlot = $timeSlots[$dayName][$schedule->learning_sequence] ?? null;
                     $startTime = $timeSlot ? Carbon::parse($dateStr . ' ' . $timeSlot->start_time) : null;
                     $endTime = $timeSlot ? Carbon::parse($dateStr . ' ' . $timeSlot->end_time) : null;
-
-                    // Cari Absensi
-                    $attendanceKey = $dateStr . '-' . $schedule->id;
-                    $attendance = $attendances[$attendanceKey] ?? null;
 
                     // Cek Status Kelas (Dynamic)
                     $classStatus = $schedule->schoolClass->classStatus;
