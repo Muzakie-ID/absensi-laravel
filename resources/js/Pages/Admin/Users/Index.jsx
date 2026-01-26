@@ -294,18 +294,24 @@ export default function UserIndex({ auth, users, roles, classes, filters = {} })
                             <div className="mt-4 flex justify-center">
                                 <div className="flex flex-wrap gap-1 justify-center">
                                     {users.links.map((link, k) => (
-                                        <Link
-                                            key={k}
-                                            href={link.url}
-                                            className={`px-3 py-1 border rounded text-sm ${
-                                                link.active
-                                                    ? 'bg-indigo-600 text-white border-indigo-600'
-                                                    : !link.url
-                                                        ? 'bg-white text-gray-400 border-gray-300 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500 dark:border-gray-600'
+                                        link.url ? (
+                                            <Link
+                                                key={k}
+                                                href={link.url}
+                                                className={`px-3 py-1 border rounded text-sm ${
+                                                    link.active
+                                                        ? 'bg-indigo-600 text-white border-indigo-600'
                                                         : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600'
-                                            }`}
-                                            dangerouslySetInnerHTML={{ __html: link.label }}
-                                        />
+                                                }`}
+                                                dangerouslySetInnerHTML={{ __html: link.label }}
+                                            />
+                                        ) : (
+                                            <span
+                                                key={k}
+                                                className="px-3 py-1 border rounded text-sm bg-white text-gray-400 border-gray-300 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500 dark:border-gray-600"
+                                                dangerouslySetInnerHTML={{ __html: link.label }}
+                                            />
+                                        )
                                     ))}
                                 </div>
                             </div>
