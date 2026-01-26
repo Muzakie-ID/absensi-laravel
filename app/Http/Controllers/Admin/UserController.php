@@ -15,9 +15,36 @@ use Inertia\Inertia;
 
 class UserController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::with(['role', 'schoolClass'])->orderBy('name')->get();
+        $query = User::with(['role', 'schoolClass']);
+
+        // Search
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('username', 'like', "%{$search}%")
+                  ->orWhere('identity_number', 'like', "%{$search}%");
+            });
+        }
+
+        // Filter by Role (Tab)
+        if ($request->filled('tab')) {
+            if ($request->tab === 'teachers') {
+                $query->whereHas('role', function($q) {
+                    $q->whereIn('name', ['teacher', 'picket']); // Asumsi tiket juga guru
+                });
+            } elseif ($request->tab === 'students') {
+                $query->whereHas('role', function($q) {
+                    $q->where('name', 'student');
+                });
+            }
+        }
+
+        $users = $query->orderBy('name')->paginate(10)->withQueryString();
+
         $roles = Role::all();
         $classes = SchoolClass::whereHas('classStatus', function($q) {
             $q->where('code', 'active');
@@ -26,7 +53,8 @@ class UserController extends Controller
         return Inertia::render('Admin/Users/Index', [
             'users' => $users,
             'roles' => $roles,
-            'classes' => $classes
+            'classes' => $classes,
+            'filters' => $request->only(['search', 'tab'])
         ]);
     }
 

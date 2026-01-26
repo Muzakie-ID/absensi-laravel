@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, Link, router } from '@inertiajs/react';
 import Modal from '@/Components/Modal';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
@@ -10,7 +10,7 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import DangerButton from '@/Components/DangerButton';
 import axios from 'axios';
 
-export default function UserIndex({ auth, users, roles, classes }) {
+export default function UserIndex({ auth, users, roles, classes, filters = {} }) {
     const [showModal, setShowModal] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -19,6 +19,27 @@ export default function UserIndex({ auth, users, roles, classes }) {
     const [checkMessage, setCheckMessage] = useState('');
     const [checkStatus, setCheckStatus] = useState(''); // 'success' or 'error'
 
+    // Filter States
+    const [search, setSearch] = useState(filters.search || '');
+    const [tab, setTab] = useState(filters.tab || 'all');
+
+    // Filter Handlers
+    const handleSearch = (e) => {
+        const query = e.target.value;
+        setSearch(query);
+        router.get(route('admin.users.index'), { search: query, tab: tab === 'all' ? '' : tab }, {
+            preserveState: true,
+            replace: true,
+        });
+    };
+
+    const handleTabChange = (newTab) => {
+        setTab(newTab);
+        router.get(route('admin.users.index'), { search: search, tab: newTab === 'all' ? '' : newTab }, {
+            preserveState: true,
+        });
+    };
+    
     const { data, setData, post, put, delete: destroy, processing, errors, reset } = useForm({
         name: '',
         username: '',
@@ -160,11 +181,52 @@ export default function UserIndex({ auth, users, roles, classes }) {
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Daftar Pengguna</h3>
-                            <PrimaryButton onClick={() => openModal()}>
-                                Tambah Pengguna
-                            </PrimaryButton>
+                        <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                            <div className="flex space-x-1 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
+                                <button
+                                    onClick={() => handleTabChange('all')}
+                                    className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                                        tab === 'all' 
+                                            ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow' 
+                                            : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                                    }`}
+                                >
+                                    Semua
+                                </button>
+                                <button
+                                    onClick={() => handleTabChange('teachers')}
+                                    className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                                        tab === 'teachers' 
+                                            ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow' 
+                                            : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                                    }`}
+                                >
+                                    Guru
+                                </button>
+                                <button
+                                    onClick={() => handleTabChange('students')}
+                                    className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                                        tab === 'students' 
+                                            ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow' 
+                                            : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                                    }`}
+                                >
+                                    Murid
+                                </button>
+                            </div>
+
+                            <div className="flex gap-2 w-full md:w-auto items-center">
+                                <TextInput
+                                    type="text"
+                                    placeholder="Cari..."
+                                    value={search}
+                                    onChange={handleSearch}
+                                    className="w-full md:w-64"
+                                />
+                                <PrimaryButton onClick={() => openModal()}>
+                                    Tambah
+                                </PrimaryButton>
+                            </div>
                         </div>
 
                         <div className="overflow-x-auto">
@@ -180,44 +242,74 @@ export default function UserIndex({ auth, users, roles, classes }) {
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                    {users.map((user) => (
-                                        <tr key={user.id}>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                                {user.identity_number || '-'}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{user.name}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{user.username || '-'}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{user.email}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                                    user.role_id === 1 ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' : 
-                                                    user.role_id === 2 ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' : 
-                                                    'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                                                }`}>
-                                                    {user.role ? user.role.name : 'Unknown'}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                <button
-                                                    onClick={() => openModal(user)}
-                                                    className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 mr-4"
-                                                >
-                                                    Edit
-                                                </button>
-                                                {user.id !== auth.user.id && (
+                                    {users.data.length > 0 ? (
+                                        users.data.map((user) => (
+                                            <tr key={user.id}>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                                                    {user.identity_number || '-'}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{user.name}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{user.username || '-'}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{user.email}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                                        user.role_id === 1 ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' : 
+                                                        user.role_id === 2 ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' : 
+                                                        'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                                    }`}>
+                                                        {user.role ? user.role.name : 'Unknown'}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                     <button
-                                                        onClick={() => confirmDelete(user)}
-                                                        className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                                                        onClick={() => openModal(user)}
+                                                        className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 mr-4"
                                                     >
-                                                        Hapus
+                                                        Edit
                                                     </button>
-                                                )}
+                                                    {user.id !== auth.user.id && (
+                                                        <button
+                                                            onClick={() => confirmDelete(user)}
+                                                            className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                                                        >
+                                                            Hapus
+                                                        </button>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan="6" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                                                Tidak ada data ditemukan.
                                             </td>
                                         </tr>
-                                    ))}
+                                    )}
                                 </tbody>
                             </table>
                         </div>
+
+                        {/* Pagination */}
+                        {users.links && users.links.length > 3 && (
+                            <div className="mt-4 flex justify-center">
+                                <div className="flex flex-wrap gap-1 justify-center">
+                                    {users.links.map((link, k) => (
+                                        <Link
+                                            key={k}
+                                            href={link.url}
+                                            className={`px-3 py-1 border rounded text-sm ${
+                                                link.active
+                                                    ? 'bg-indigo-600 text-white border-indigo-600'
+                                                    : !link.url
+                                                        ? 'bg-white text-gray-400 border-gray-300 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500 dark:border-gray-600'
+                                                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600'
+                                            }`}
+                                            dangerouslySetInnerHTML={{ __html: link.label }}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
