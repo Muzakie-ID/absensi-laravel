@@ -139,33 +139,33 @@ export default function AllowedRegistrationIndex({ auth, registrations, type, fi
                     <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
                         
                         {/* Tabs */}
-                        <div className="flex space-x-4 mb-6 border-b border-gray-200 dark:border-gray-700">
+                        <div className="flex space-x-1 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg mb-6 w-fit">
                              <button
                                 onClick={() => handleTypeChange('')}
-                                className={`py-2 px-4 font-medium text-sm focus:outline-none ${
-                                    !type
-                                        ? 'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400'
-                                        : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                                    !type || type === 'all'
+                                        ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow'
+                                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                                 }`}
                             >
                                 Semua
                             </button>
                             <button
                                 onClick={() => handleTypeChange('teacher')}
-                                className={`py-2 px-4 font-medium text-sm focus:outline-none ${
+                                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                                     type === 'teacher'
-                                        ? 'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400'
-                                        : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                                        ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow' 
+                                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                                 }`}
                             >
                                 Data Guru
                             </button>
                             <button
                                 onClick={() => handleTypeChange('student')}
-                                className={`py-2 px-4 font-medium text-sm focus:outline-none ${
+                                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                                     type === 'student'
-                                        ? 'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400'
-                                        : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                                        ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow'
+                                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                                 }`}
                             >
                                 Data Siswa
