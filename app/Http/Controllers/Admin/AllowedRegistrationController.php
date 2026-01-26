@@ -12,12 +12,18 @@ class AllowedRegistrationController extends Controller
 {
     public function index(Request $request)
     {
-        $type = $request->input('type', 'teacher'); // Default teacher
+        // Default null (Semua), tapi jika ingin default 'teacher' bisa diatur di frontend atau sini.
+        // User request: "nav tab seperti tadi" (Users page has 'Semua').
+        // Kita ubah agar support filter optional.
+        $type = $request->input('type'); 
         $search = $request->input('search');
         $perPage = $request->input('per_page', 10);
         
-        $query = AllowedRegistration::where('role_type', $type)
-            ->with('schoolClass');
+        $query = AllowedRegistration::with('schoolClass');
+
+        if ($type && in_array($type, ['teacher', 'student'])) {
+            $query->where('role_type', $type);
+        }
 
         if ($search) {
             $query->where(function($q) use ($search) {

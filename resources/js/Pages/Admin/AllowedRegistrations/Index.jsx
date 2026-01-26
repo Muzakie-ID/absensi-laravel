@@ -18,7 +18,7 @@ export default function AllowedRegistrationIndex({ auth, registrations, type, fi
     const { data, setData, post, put, delete: destroy, processing, errors, reset } = useForm({
         identity_number: '',
         name: '',
-        role_type: type,
+        role_type: type || 'teacher',
         school_class_id: ''
     });
 
@@ -37,7 +37,7 @@ export default function AllowedRegistrationIndex({ auth, registrations, type, fi
             setData({
                 identity_number: '',
                 name: '',
-                role_type: type,
+                role_type: type || 'teacher',
                 school_class_id: ''
             });
         }
@@ -104,6 +104,12 @@ export default function AllowedRegistrationIndex({ auth, registrations, type, fi
         router.get(route('admin.allowed-registrations.index'), { type: newType, per_page: perPage }, { preserveState: true });
     };
 
+    const getPageTitle = () => {
+        if (type === 'teacher') return 'Master Data Guru';
+        if (type === 'student') return 'Master Data Siswa';
+        return 'Master Data Semua';
+    };
+
     if (!registrations || !registrations.data) {
         return (
             <AuthenticatedLayout
@@ -124,9 +130,9 @@ export default function AllowedRegistrationIndex({ auth, registrations, type, fi
     return (
         <AuthenticatedLayout
             user={auth.user}
-            header={<h2 className="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">Master Data {type === 'teacher' ? 'Guru' : 'Siswa'}</h2>}
+            header={<h2 className="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">{getPageTitle()}</h2>}
         >
-            <Head title={`Master Data ${type === 'teacher' ? 'Guru' : 'Siswa'}`} />
+            <Head title={getPageTitle()} />
 
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -134,6 +140,16 @@ export default function AllowedRegistrationIndex({ auth, registrations, type, fi
                         
                         {/* Tabs */}
                         <div className="flex space-x-4 mb-6 border-b border-gray-200 dark:border-gray-700">
+                             <button
+                                onClick={() => handleTypeChange('')}
+                                className={`py-2 px-4 font-medium text-sm focus:outline-none ${
+                                    !type
+                                        ? 'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                                        : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                                }`}
+                            >
+                                Semua
+                            </button>
                             <button
                                 onClick={() => handleTypeChange('teacher')}
                                 className={`py-2 px-4 font-medium text-sm focus:outline-none ${
@@ -202,11 +218,11 @@ export default function AllowedRegistrationIndex({ auth, registrations, type, fi
                                 <thead className="bg-gray-50 dark:bg-gray-700">
                                     <tr>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            {type === 'teacher' ? 'Kode Guru' : 'NIS'}
+                                            {(!type || type === 'all') ? 'Kode/NIS' : (type === 'teacher' ? 'Kode Guru' : 'NIS')}
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Nama Lengkap</th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Kode Registrasi</th>
-                                        {type === 'student' && (
+                                        {(!type || type === 'student') && (
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Kelas</th>
                                         )}
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status Registrasi</th>
@@ -226,7 +242,7 @@ export default function AllowedRegistrationIndex({ auth, registrations, type, fi
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900 dark:text-gray-100">
                                                     {item.registration_code || '-'}
                                                 </td>
-                                                {type === 'student' && (
+                                                {(!type || type === 'student') && (
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                                                         {item.school_class ? item.school_class.name : '-'}
                                                     </td>
@@ -272,7 +288,7 @@ export default function AllowedRegistrationIndex({ auth, registrations, type, fi
                         {/* Pagination */}
                         {registrations.links && registrations.links.length > 3 && (
                             <div className="mt-4 flex justify-center">
-                                <div className="flex gap-1">
+                                <div className="flex flex-wrap gap-1 justify-center">
                                     {registrations.links.map((link, k) => (
                                         link.url ? (
                                             <Link
@@ -307,8 +323,24 @@ export default function AllowedRegistrationIndex({ auth, registrations, type, fi
                         {editingItem ? 'Edit Data' : 'Tambah Data Baru'}
                     </h2>
 
+                    {(!type) && (
+                        <div className="mb-4">
+                            <InputLabel htmlFor="role_type" value="Tipe Data" className="dark:text-gray-300" />
+                            <select
+                                id="role_type"
+                                className="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
+                                value={data.role_type}
+                                onChange={(e) => setData('role_type', e.target.value)}
+                                disabled={editingItem !== null} // Disable changing type on edit, or allow? Typically role type shouldn't change easily.
+                            >
+                                <option value="teacher">Guru / Staff</option>
+                                <option value="student">Siswa</option>
+                            </select>
+                        </div>
+                    )}
+
                     <div className="mb-4">
-                        <InputLabel htmlFor="identity_number" value={type === 'teacher' ? 'Kode Guru' : 'NIS'} className="dark:text-gray-300" />
+                        <InputLabel htmlFor="identity_number" value={data.role_type === 'teacher' ? 'Kode Guru' : 'NIS'} className="dark:text-gray-300" />
                         <TextInput
                             id="identity_number"
                             type="text"
@@ -334,7 +366,7 @@ export default function AllowedRegistrationIndex({ auth, registrations, type, fi
                         <InputError message={errors.name} className="mt-2" />
                     </div>
 
-                    {type === 'student' && (
+                    {data.role_type === 'student' && (
                         <div className="mb-4">
                             <InputLabel htmlFor="school_class_id" value="Kelas" className="dark:text-gray-300" />
                             <select
