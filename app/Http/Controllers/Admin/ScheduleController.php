@@ -69,6 +69,16 @@ class ScheduleController extends Controller
             'schedules.*.user_id' => 'nullable|exists:users,id',
         ]);
 
+        // Validasi tambahan: jika ada subject_id atau user_id, keduanya harus ada
+        foreach ($request->schedules as $index => $data) {
+            if ((!empty($data['subject_id']) || !empty($data['user_id'])) && 
+                (empty($data['subject_id']) || empty($data['user_id']))) {
+                return redirect()->back()->withErrors([
+                    'schedules.' . $index . '.validation' => 'Mapel dan Guru harus diisi bersama-sama. Jika salah satu tidak ingin diisi, kosongkan keduanya.'
+                ]);
+            }
+        }
+
         // We will process the updates. 
         // If subject_id or user_id is null, we delete the schedule.
         // Otherwise we update or create.
@@ -81,7 +91,7 @@ class ScheduleController extends Controller
                     ->where('learning_sequence', $data['learning_sequence'])
                     ->delete();
             } else {
-                // Jika salah satu ada, update atau create
+                // Jika keduanya ada, update atau create
                 Schedule::updateOrCreate(
                     [
                         'class_id' => $schoolClass->id,
@@ -89,8 +99,8 @@ class ScheduleController extends Controller
                         'learning_sequence' => $data['learning_sequence']
                     ],
                     [
-                        'subject_id' => $data['subject_id'] ?: null,
-                        'user_id' => $data['user_id'] ?: null
+                        'subject_id' => $data['subject_id'],
+                        'user_id' => $data['user_id']
                     ]
                 );
             }
