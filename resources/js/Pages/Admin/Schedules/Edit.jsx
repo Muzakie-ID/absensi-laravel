@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, useForm, Link } from '@inertiajs/react';
+import { Head, useForm, Link, usePage } from '@inertiajs/react';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 
-export default function ScheduleEdit({ auth, schoolClass, schedules, subjects, teachers, activeTemplate, flash }) {
+export default function ScheduleEdit({ auth, schoolClass, schedules, subjects, teachers, activeTemplate }) {
+    const { flash } = usePage().props;
     const days = ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu', 'minggu'];
     
     // Transform initial schedules to a flat object for easier access: key = "day-sequence"
@@ -126,12 +127,12 @@ export default function ScheduleEdit({ auth, schoolClass, schedules, subjects, t
             <div className="py-12">
                 <div className="max-w-full mx-auto sm:px-6 lg:px-8">
                     <form onSubmit={handleSubmit}>
-                        {flash?.success && (
-                            <div className="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative">
-                                <strong className="font-bold">Berhasil!</strong>
-                                <p className="text-sm">{flash.success}</p>
+                        {flash.success && (
+                            <div className="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+                                <span className="block sm:inline">{flash.success}</span>
                             </div>
                         )}
+
                         {Object.keys(errors).length > 0 && (
                             <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
                                 <strong className="font-bold">Gagal menyimpan!</strong>
