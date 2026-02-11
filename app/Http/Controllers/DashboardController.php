@@ -539,8 +539,13 @@ class DashboardController extends Controller
         // Get Schedules
         $schedules = Schedule::with(['user', 'subject'])
             ->where('class_id', $user->school_class_id)
-            ->get()
-            ->groupBy('day');
+            ->get();
+            
+        // Pisahkan per hari, tapi sequence harus integer
+        $schedulesByDay = [];
+        foreach ($schedules as $sched) {
+            $schedulesByDay[$sched->day][$sched->learning_sequence] = $sched;
+        }
 
         // Get TimeSlots
         $allTimeSlots = TimeSlot::with('activityType')
@@ -554,24 +559,34 @@ class DashboardController extends Controller
         
         foreach ($dayOrder as $day) {
             $slots = $allTimeSlots[$day] ?? collect([]);
-            $daySchedules = $schedules[$day] ?? collect([]);
+            $currentDaySchedules = $schedulesByDay[$day] ?? [];
             
-            $dayData = $slots->map(function($slot) use ($daySchedules, $todayName, $day) {
+            $dayData = $slots->map(function($slot) use ($currentDaySchedules, $todayName, $day) {
                 $scheduleItem = null;
                 $teacherStatus = null;
                 
-                if ($slot->type === 'learning') {
-                    $scheduleItem = $daySchedules->firstWhere('learning_sequence', $slot->period_order);
-                    
-                    if ($day === $todayName && $scheduleItem) {
-                        $attendance = Attendance::where('schedule_id', $scheduleItem->id)
-                            ->whereDate('created_at', Carbon::today())
-                            ->first();
-                            
-                        if ($attendance) {
-                            $teacherStatus = $attendance->status; 
-                        } else {
-                            $teacherStatus = 'waiting';
+                if ($slot->type === 'learning' || ($slot->activityType && $slot->activityType->name === 'learning')) {
+                    // Cek mapping source untuk dapat kbm_X
+                    $seq = null;
+                    if ($slot->mapping_source) {
+                         // mapping_source bisa '1', '2' atau 'kbm_1' (jika ada prefix)
+                         // Asumsi: mapping_source adalah angka sequence
+                         $seq = (int) $slot->mapping_source;
+                    }
+
+                    if ($seq && isset($currentDaySchedules[$seq])) {
+                        $scheduleItem = $currentDaySchedules[$seq];
+
+                        if ($day === $todayName) {
+                            $attendance = Attendance::where('schedule_id', $scheduleItem->id)
+                                ->whereDate('created_at', Carbon::today())
+                                ->first();
+                                
+                            if ($attendance) {
+                                $teacherStatus = $attendance->status; 
+                            } else {
+                                $teacherStatus = 'waiting';
+                            }
                         }
                     }
                 }
@@ -579,10 +594,9 @@ class DashboardController extends Controller
                 return [
                     'time' => Carbon::parse($slot->start_time)->format('H:i') . ' - ' . Carbon::parse($slot->end_time)->format('H:i'),
                     'type' => $slot->type,
-                    'subject' => $scheduleItem ? $scheduleItem->subject->name : ($slot->activityType ? $slot->activityType->name : '-'),
-                    'teacher' => $scheduleItem ? $scheduleItem->user->name : '-',
-                    'teacher_status' => $teacherStatus,
-                    'is_current' => $day === $todayName && Carbon::now()->between(Carbon::parse($slot->start_time), Carbon::parse($slot->end_time))
+                    'subject' => $scheduleItem ? $scheduleItem->subject->name : ($slot->type === 'learning' ? '-' : ($slot->activityType->name ?? $slot->type)),
+                    'teacher' => $scheduleItem ? $scheduleItem->user->name : '',
+                    'status' => $teacherStatus
                 ];
             });
             
