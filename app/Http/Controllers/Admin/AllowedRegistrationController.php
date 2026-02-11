@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AllowedRegistration;
 use App\Models\SchoolClass;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -72,7 +73,28 @@ class AllowedRegistrationController extends Controller
             'school_class_id' => 'nullable|exists:classes,id',
         ]);
 
-        $allowedRegistration->update($request->all());
+        $oldIdentity = $allowedRegistration->identity_number;
+
+        $allowedRegistration->fill($request->all());
+        
+        // Cek perubahan role_type untuk reset class jika jadi teacher
+        // (Opsional, tapi form frontend mungkin handle ini)
+        
+        $allowedRegistration->save();
+
+        // Sinkronisasi ke User jika sudah terdaftar
+        if ($allowedRegistration->is_registered) {
+            // Cari user berdasarkan ID lama (jika NIP/NIS berubah)
+            $user = User::where('identity_number', $oldIdentity)->first();
+            
+            if ($user) {
+                $user->update([
+                    'name' => $request->name,
+                    'school_class_id' => $request->school_class_id,
+                    'identity_number' => $request->identity_number,
+                ]);
+            }
+        }
 
         return redirect()->back()->with('success', 'Data berhasil diperbarui.');
     }
