@@ -511,6 +511,7 @@ class DashboardController extends Controller
 
     private function studentDashboard()
     {
+        // Student Dashboard Logic
         $user = auth()->user();
         
         if (!$user->school_class_id) {
