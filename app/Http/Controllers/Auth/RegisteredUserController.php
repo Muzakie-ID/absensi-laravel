@@ -53,6 +53,17 @@ class RegisteredUserController extends Controller
             return back()->withErrors(['registration_identifier' => 'Akun ini sudah terdaftar.']);
         }
 
+        // VALIDASI NAMA: Cek kemiripan nama
+        $inputName = strtolower(trim($request->name));
+        $allowedName = strtolower(trim($allowed->name));
+        
+        // Opsional: Cek kesamaan persis atau parsial
+        // Disini saya pakai cek persis casing insensitive.
+        // Jika ingin lebih longgar (misal ada typo dikit), bisa pakai similar_text atau str_contains
+        if ($inputName !== $allowedName) {
+             return back()->withErrors(['name' => 'Nama anda salah, pastikan sesuai dengan data yang terdaftar (' . $allowed->name . ')']);
+        }
+
         $roleId = $allowed->role_type === 'teacher' ? 2 : 4;
 
         $user = User::create([
