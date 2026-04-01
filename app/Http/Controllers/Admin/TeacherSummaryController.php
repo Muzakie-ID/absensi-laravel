@@ -87,10 +87,31 @@ class TeacherSummaryController extends Controller
         // Ambil Absensi Real
         $attendances = Attendance::where('user_id', $user->id)
             ->whereBetween('created_at', [$startDate, $endDate])
-            ->get()
-            ->keyBy(function ($item) {
-                return $item->created_at->format('Y-m-d') . '-' . $item->schedule_id;
-            });
+            ->get();
+
+        if ($attendances->isEmpty()) {
+            return [
+                'user' => $user,
+                'stats' => [
+                    'total_schedules' => 0,
+                    'present' => 0,
+                    'late' => 0,
+                    'permit' => 0,
+                    'alpha' => 0,
+                    'total_late_minutes' => 0,
+                    'attendance_percentage' => 0,
+                ],
+                'journal' => [],
+                'filters' => [
+                    'month' => $month,
+                    'year' => $year,
+                ]
+            ];
+        }
+
+        $attendances = $attendances->keyBy(function ($item) {
+            return $item->created_at->format('Y-m-d') . '-' . $item->schedule_id;
+        });
 
         // Generate Jurnal Mengajar (Jadwal vs Realisasi)
         $journal = [];
