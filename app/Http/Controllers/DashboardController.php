@@ -162,7 +162,11 @@ class DashboardController extends Controller
                                 'notes' => $attendance->notes,
                             ];
                         } else {
-                            $data['can_attend'] = true; // Tombol absen muncul
+                            if ($data['status'] === 'finished') {
+                                $data['can_attend'] = false; // Jam sudah lewat, tidak bisa absen
+                            } else {
+                                $data['can_attend'] = true; // Tombol absen muncul
+                            }
                             $data['has_attended'] = false;
                         }
                     } else {

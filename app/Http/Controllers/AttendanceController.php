@@ -8,6 +8,7 @@ use App\Models\ScheduleTemplate;
 use App\Models\TimeSlot;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Carbon\Carbon;
 
 class AttendanceController extends Controller
 {
@@ -25,6 +26,22 @@ class AttendanceController extends Controller
 
         if ($existingAttendance) {
             return redirect()->route('dashboard')->with('message', 'Anda sudah melakukan absensi untuk jam ini.');
+        }
+
+        // Validasi: Cek apakah jam buka absensi sudah terlewat
+        $activeTemplate = ScheduleTemplate::where('is_active', true)->first();
+        if ($activeTemplate) {
+            $timeSlot = TimeSlot::where('schedule_template_id', $activeTemplate->id)
+                ->where('day', $schedule->day)
+                ->where('period_order', $schedule->learning_sequence)
+                ->first();
+
+            if ($timeSlot) {
+                $end = Carbon::parse($timeSlot->end_time);
+                if (now()->gt($end)) {
+                    return redirect()->route('dashboard')->with('error', 'Waktu absen untuk jadwal ini sudah berakhir.');
+                }
+            }
         }
 
         // Fitur Flashback: Ambil materi terakhir dari kelas & mapel yang sama
@@ -45,6 +62,22 @@ class AttendanceController extends Controller
 
     public function store(Request $request, Schedule $schedule)
     {
+        // Validasi: Cek apakah jam buka absensi sudah terlewat
+        $activeTemplate = ScheduleTemplate::where('is_active', true)->first();
+        if ($activeTemplate) {
+            $timeSlot = TimeSlot::where('schedule_template_id', $activeTemplate->id)
+                ->where('day', $schedule->day)
+                ->where('period_order', $schedule->learning_sequence)
+                ->first();
+
+            if ($timeSlot) {
+                $end = Carbon::parse($timeSlot->end_time);
+                if (now()->gt($end)) {
+                    return redirect()->route('dashboard')->with('error', 'Waktu absen untuk jadwal ini sudah berakhir.');
+                }
+            }
+        }
+
         $request->validate([
             'status' => 'required|in:present,permit,sick,late',
             'photo' => 'required|image|max:5120', // Max 5MB
