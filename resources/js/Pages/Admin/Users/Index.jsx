@@ -48,7 +48,8 @@ export default function UserIndex({ auth, users, roles, classes, filters = {} })
         role_id: '',
         school_class_id: '',
         password: '',
-        password_confirmation: ''
+        password_confirmation: '',
+        picket_schedules: []
     });
 
     const openModal = (user = null) => {
@@ -62,7 +63,8 @@ export default function UserIndex({ auth, users, roles, classes, filters = {} })
                 role_id: user.role_id,
                 school_class_id: user.school_class_id || '',
                 password: '',
-                password_confirmation: ''
+                password_confirmation: '',
+                picket_schedules: user.picket_schedules ? user.picket_schedules.map(ps => ps.day) : []
             });
         } else {
             setEditingUser(null);
@@ -76,7 +78,8 @@ export default function UserIndex({ auth, users, roles, classes, filters = {} })
                 role_id: roles.length > 0 ? roles[0].id : '',
                 school_class_id: '',
                 password: '',
-                password_confirmation: ''
+                password_confirmation: '',
+                picket_schedules: []
             });
         }
         setShowModal(true);
@@ -419,6 +422,36 @@ export default function UserIndex({ auth, users, roles, classes, filters = {} })
                         </select>
                         <InputError message={errors.role_id} className="mt-2" />
                     </div>
+
+                    {roles.find(r => r.id == data.role_id)?.name === 'teacher' && (
+                        <div className="mb-4">
+                            <InputLabel value="Penugasan Sebagai Guru Piket Di Hari:" className="dark:text-gray-300" />
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
+                                {['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu'].map(day => (
+                                    <label key={day} className="flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300">
+                                        <input
+                                            type="checkbox"
+                                            className="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-900 dark:border-gray-600"
+                                            value={day}
+                                            checked={data.picket_schedules.includes(day)}
+                                            onChange={(e) => {
+                                                const checked = e.target.checked;
+                                                let updated = [...data.picket_schedules];
+                                                if (checked) {
+                                                    updated.push(day);
+                                                } else {
+                                                    updated = updated.filter(d => d !== day);
+                                                }
+                                                setData('picket_schedules', updated);
+                                            }}
+                                        />
+                                        <span className="capitalize">{day}</span>
+                                    </label>
+                                ))}
+                            </div>
+                            <InputError message={errors.picket_schedules} className="mt-2" />
+                        </div>
+                    )}
 
                     {/* Show Class Dropdown if Role is Student (assuming role_id 4 is student, or check by name) */}
                     {roles.find(r => r.id == data.role_id)?.name === 'student' && (

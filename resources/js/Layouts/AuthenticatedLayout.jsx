@@ -12,7 +12,13 @@ export default function AuthenticatedLayout({ header, children }) {
     // Role Helpers (Sesuaikan ID dengan Seeder)
     const isAdmin = user.role_id === 1;
     const isTeacher = user.role_id === 2 || user.role_id === 3; // Guru Mapel & Guru Piket
-    const isPicket = user.role_id === 3;
+    
+    // Check if the user is a picket today based on picket_schedules
+    const days = ['minggu', 'senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu'];
+    const currentDay = days[new Date().getDay()];
+    const isPicketToday = user.picket_schedules && user.picket_schedules.some(ps => ps.day === currentDay);
+    
+    const isPicket = user.role_id === 3 || isPicketToday;
 
     return (
         <div className="min-h-screen bg-gray-100 dark:bg-gray-900">

@@ -17,7 +17,7 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $query = User::with(['role', 'schoolClass']);
+        $query = User::with(['role', 'schoolClass', 'picketSchedules']);
 
         // Search
         if ($request->filled('search')) {
@@ -68,9 +68,11 @@ class UserController extends Controller
             'role_id' => 'required|exists:roles,id',
             'school_class_id' => 'nullable|exists:classes,id',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'picket_schedules' => 'nullable|array',
+            'picket_schedules.*' => 'in:senin,selasa,rabu,kamis,jumat,sabtu,minggu'
         ]);
 
-        User::create([
+        $user = User::create([
             'name' => $request->name,
             'username' => $request->username,
             'identity_number' => $request->identity_number,
@@ -79,6 +81,12 @@ class UserController extends Controller
             'school_class_id' => $request->school_class_id,
             'password' => Hash::make($request->password),
         ]);
+
+        if ($request->has('picket_schedules') && is_array($request->picket_schedules)) {
+            foreach ($request->picket_schedules as $day) {
+                $user->picketSchedules()->create(['day' => $day]);
+            }
+        }
 
         // Update status registrasi di master data jika ada
         if ($request->identity_number) {
@@ -100,6 +108,8 @@ class UserController extends Controller
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'role_id' => 'required|exists:roles,id',
             'school_class_id' => 'nullable|exists:classes,id',
+            'picket_schedules' => 'nullable|array',
+            'picket_schedules.*' => 'in:senin,selasa,rabu,kamis,jumat,sabtu,minggu'
         ];
 
         if ($request->filled('password')) {
@@ -126,6 +136,15 @@ class UserController extends Controller
         $newIdentity = $request->identity_number;
 
         $user->update($userData);
+
+        if ($request->has('picket_schedules') && is_array($request->picket_schedules)) {
+            $user->picketSchedules()->delete();
+            foreach ($request->picket_schedules as $day) {
+                $user->picketSchedules()->create(['day' => $day]);
+            }
+        } elseif ($request->has('picket_schedules') && empty($request->picket_schedules)) {
+            $user->picketSchedules()->delete();
+        }
 
         if ($oldIdentity !== $newIdentity) {
             // Reset status NIP lama

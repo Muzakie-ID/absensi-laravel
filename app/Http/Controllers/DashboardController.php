@@ -11,6 +11,7 @@ use App\Models\TimeSlot;
 use App\Models\User;
 use App\Models\Holiday;
 use App\Models\PicketLog;
+use App\Models\PicketSchedule;
 use App\Models\GuestBook;
 use App\Models\Announcement;
 use Carbon\Carbon;
@@ -28,10 +29,6 @@ class DashboardController extends Controller
             return $this->adminDashboard();
         }
 
-        // if ($user->role->name === 'picket') {
-        //     return $this->monitoring();
-        // }
-
         if ($user->role->name === 'student') {
             return $this->studentDashboard();
         }
@@ -45,7 +42,7 @@ class DashboardController extends Controller
         ];
         $today = $days[Carbon::now()->dayOfWeekIso] ?? 'minggu';
 
-                // Cek Hari Libur
+        // Cek Hari Libur
         $holiday = Holiday::whereDate('date', Carbon::today())->first();
         if ($holiday) {
             $today = Carbon::today();
@@ -195,8 +192,15 @@ class DashboardController extends Controller
 
     public function monitoring(Request $request)
     {
+        $user = auth()->user();
         $days = [1 => 'senin', 2 => 'selasa', 3 => 'rabu', 4 => 'kamis', 5 => 'jumat', 6 => 'sabtu', 7 => 'minggu'];
         $today = $days[Carbon::now()->dayOfWeekIso] ?? 'minggu';
+
+        $isPicketToday = PicketSchedule::where('user_id', $user->id)->where('day', $today)->exists();
+        if ($user->role->name !== 'admin' && $user->role->name !== 'picket' && !$isPicketToday) {
+            abort(403, 'Akses ditolak. Anda tidak memiliki tugas piket hari ini.');
+        }
+
         $now = Carbon::now();
 
         // Cek Hari Libur
@@ -373,6 +377,15 @@ class DashboardController extends Controller
 
     public function updateAttendance(Request $request)
     {
+        $user = auth()->user();
+        $days = [1 => 'senin', 2 => 'selasa', 3 => 'rabu', 4 => 'kamis', 5 => 'jumat', 6 => 'sabtu', 7 => 'minggu'];
+        $today = $days[Carbon::now()->dayOfWeekIso] ?? 'minggu';
+        
+        $isPicketToday = PicketSchedule::where('user_id', $user->id)->where('day', $today)->exists();
+        if ($user->role->name !== 'admin' && $user->role->name !== 'picket' && !$isPicketToday) {
+            abort(403, 'Akses ditolak.');
+        }
+
         $request->validate([
             'schedule_id' => 'required|exists:schedules,id',
             'status' => 'required|in:present,late,sick,permit,missing,alpha',

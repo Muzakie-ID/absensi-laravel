@@ -43,6 +43,11 @@ class User extends Authenticatable
     {
         return $this->hasMany(Schedule::class);
     }
+    
+    public function picketSchedules()
+    {
+        return $this->hasMany(PicketSchedule::class);
+    }
 
     /**
      * The attributes that should be hidden for serialization.
