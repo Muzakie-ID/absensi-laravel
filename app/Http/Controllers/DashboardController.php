@@ -183,10 +183,18 @@ class DashboardController extends Controller
             return $data;
         });
 
+        // Ambil Data Guru Piket Hari Ini
+        $picketTeachersCount = PicketSchedule::where('day', $today)->count();
+        $picketTeachersList = PicketSchedule::with('user')->where('day', $today)->get()->pluck('user.name')->implode(', ');
+        $isUserPicket = PicketSchedule::where('user_id', $user->id)->where('day', $today)->exists();
+
         return Inertia::render('Dashboard', [
             'today' => ucfirst($today),
             'date' => Carbon::now()->translatedFormat('d F Y'),
-            'schedule' => $finalSchedule
+            'schedule' => $finalSchedule,
+            'is_picket_today' => $isUserPicket,
+            'picket_teachers_count' => $picketTeachersCount,
+            'picket_teachers_list' => $picketTeachersList
         ]);
     }
 

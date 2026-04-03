@@ -1,7 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, usePage } from '@inertiajs/react';
 
-export default function Dashboard({ schedule, today, date, holiday }) {
+export default function Dashboard({ schedule, today, date, holiday, is_picket_today, picket_teachers_count, picket_teachers_list }) {
     const user = usePage().props.auth.user;
 
     return (
@@ -22,6 +22,38 @@ export default function Dashboard({ schedule, today, date, holiday }) {
 
             <div className="py-6">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    {!holiday && (
+                        <div className="mb-6 flex flex-col md:flex-row gap-4">
+                            {is_picket_today ? (
+                                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4 flex-1 flex items-center justify-between shadow-sm">
+                                    <div>
+                                        <h3 className="text-lg font-bold text-yellow-800 dark:text-yellow-400 flex items-center gap-2">
+                                            <span className="text-xl">📋</span> Anda Bertugas Sebagai Piket Hari Ini
+                                        </h3>
+                                        <p className="text-sm text-yellow-700 dark:text-yellow-500 mt-1">
+                                            Silahkan pantau kehadiran kelas di menu Monitoring Kelas.
+                                        </p>
+                                    </div>
+                                    <a
+                                        href={route('admin.monitoring')}
+                                        className="inline-flex items-center px-4 py-2 bg-yellow-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-yellow-500 active:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition ease-in-out duration-150 shadow-sm"
+                                    >
+                                        Buka Monitoring
+                                    </a>
+                                </div>
+                            ) : picket_teachers_count > 0 ? (
+                                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 flex-1 shadow-sm">
+                                    <h3 className="text-sm font-bold text-blue-800 dark:text-blue-400 flex items-center gap-2">
+                                        <span className="text-lg">ℹ️</span> Informasi
+                                    </h3>
+                                    <p className="text-sm text-blue-700 dark:text-blue-500 mt-1">
+                                        Terdapat <strong>{picket_teachers_count} Guru Piket</strong> yang bertugas hari ini: <strong>{picket_teachers_list}</strong>. <br/>Silahkan lapor ke guru piket jika terjadi kendala absensi.
+                                    </p>
+                                </div>
+                            ) : null}
+                        </div>
+                    )}
+
                     {holiday ? (
                         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-8 text-center">
                             <h3 className="text-2xl font-bold text-red-700 dark:text-red-400 mb-2">
