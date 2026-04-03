@@ -740,13 +740,13 @@ export default function DashboardPicket({ today, date, slotInfo, monitoringData,
 
             {/* Modal Detail & Edit */}
             <Modal show={isModalOpen} onClose={closeModal}>
-                <div className="p-6">
-                    <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
+                <div className="p-6 flex flex-col max-h-[90vh]">
+                    <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4 shrink-0">
                         Detail Kehadiran
                     </h2>
 
                     {selectedItem && (
-                        <div className="space-y-4">
+                        <div className="space-y-4 flex-1 min-h-0 overflow-y-auto pr-2 pb-2">
                             <div className="grid grid-cols-2 gap-4 text-sm">
                                 <div>
                                     <p className="text-gray-500 dark:text-gray-400">Kelas</p>
@@ -858,7 +858,7 @@ export default function DashboardPicket({ today, date, slotInfo, monitoringData,
                         </div>
                     )}
 
-                    <div className="mt-6 flex justify-end gap-3">
+                    <div className="mt-6 flex justify-end gap-3 shrink-0">
                         <SecondaryButton onClick={closeModal}>
                             Tutup
                         </SecondaryButton>
