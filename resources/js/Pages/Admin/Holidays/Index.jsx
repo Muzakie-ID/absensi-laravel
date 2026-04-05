@@ -114,14 +114,14 @@ export default function HolidayIndex({ auth, holidays, apiUrl }) {
                         <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Konfigurasi API Hari Libur</h3>
                         <form onSubmit={handleUpdateApi} className="flex gap-4 items-end">
                             <div className="flex-1">
-                                <InputLabel htmlFor="api_url" value="URL API" />
-                                <TextInput
+                                <InputLabel htmlFor="api_url" value="URL API (Pisahkan dengan koma/spasi/baris untuk backup)" />
+                                <textarea
                                     id="api_url"
-                                    type="url"
-                                    className="mt-1 block w-full"
+                                    className="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
                                     value={apiData.api_url}
                                     onChange={(e) => setApiData('api_url', e.target.value)}
-                                    placeholder="https://api-harilibur.vercel.app/api"
+                                    placeholder="https://api1.com&#10;https://api2.com"
+                                    rows="2"
                                 />
                                 <InputError message={errorsApi.api_url} className="mt-2" />
                             </div>

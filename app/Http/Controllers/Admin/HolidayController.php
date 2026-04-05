@@ -75,7 +75,7 @@ class HolidayController extends Controller
     public function updateApiUrl(Request $request)
     {
         $request->validate([
-            'api_url' => 'required|url'
+            'api_url' => 'required|string'
         ]);
 
         Setting::updateOrCreate(
@@ -88,39 +88,76 @@ class HolidayController extends Controller
 
     public function sync()
     {
-        $apiUrl = Setting::where('key', 'holiday_api_url')->value('value');
+        $apiUrlsParam = Setting::where('key', 'holiday_api_url')->value('value');
 
-        if (!$apiUrl) {
+        if (!$apiUrlsParam) {
             return redirect()->back()->with('error', 'URL API belum dikonfigurasi.');
         }
 
-        try {
-            $response = Http::get($apiUrl);
-            
-            if ($response->successful()) {
-                $holidays = $response->json();
-                $count = 0;
+        // Pisahkan URL berdasarkan koma atau baris baru atau spasi
+        $apiUrls = preg_split('/[\s,]+/', trim($apiUrlsParam));
+        $success = false;
+        $count = 0;
+        $errorMessages = [];
 
-                foreach ($holidays as $h) {
-                    // Validasi struktur data dari API
-                    if (isset($h['tanggal']) && isset($h['keterangan'])) {
-                        Holiday::updateOrCreate(
-                            ['date' => $h['tanggal']],
-                            [
-                                'description' => $h['keterangan'],
-                                'is_cuti' => $h['is_cuti'] ?? false
-                            ]
-                        );
-                        $count++;
+        foreach ($apiUrls as $apiUrl) {
+            $apiUrl = trim($apiUrl);
+            if (empty($apiUrl)) continue;
+
+            try {
+                // Timeout 10 detik per URL agar tidak menunggu terlalu lama jika API mati
+                $response = Http::timeout(10)->get($apiUrl);
+
+                if ($response->successful()) {
+                    $responseData = $response->json();
+                    
+                    // Cek lokasi array data (bisa langsung array atau di dalam key 'data')
+                    $holidays = (isset($responseData['data']) && is_array($responseData['data'])) 
+                        ? $responseData['data'] 
+                        : (is_array($responseData) ? $responseData : null);
+
+                    if ($holidays !== null) {
+                        foreach ($holidays as $h) {
+                            // Cek kemungkinan key untuk format tanggal dan keterangan dari berbagai API
+                            $date = $h['tanggal'] ?? $h['date'] ?? null;
+                            $desc = $h['keterangan'] ?? $h['description'] ?? $h['name'] ?? null;
+
+                            if ($date && $desc) {
+                                // Default is_cuti berdasarkan text description jika key is_cuti tidak ada
+                                $isCuti = isset($h['is_cuti']) 
+                                    ? filter_var($h['is_cuti'], FILTER_VALIDATE_BOOLEAN) 
+                                    : (stripos($desc, 'cuti') !== false);
+
+                                Holiday::updateOrCreate(
+                                    ['date' => $date],
+                                    [
+                                        'description' => $desc,
+                                        'is_cuti' => $isCuti
+                                    ]
+                                );
+                                $count++;
+                            }
+                        }
+                        
+                        if ($count > 0 || count($holidays) === 0) {
+                            $success = true;
+                            // Berhasil mendapatkan list yg valid (bahkan jika kosong), hentikan pencarian backup
+                            break;
+                        }
+                    } else {
+                        $errorMessages[] = "Format API $apiUrl tidak valid (Bukan array).";
                     }
+                } else {
+                    $errorMessages[] = "$apiUrl (Status: " . $response->status() . ")";
                 }
-
-                return redirect()->back()->with('success', "Berhasil sinkronisasi $count data hari libur.");
-            } else {
-                return redirect()->back()->with('error', 'Gagal mengambil data dari API. Status: ' . $response->status());
+            } catch (\Exception $e) {
+                // Catat error URL ini namun lanjutkan ke iterasi backup URL berikutnya
+                $errorMessages[] = "$apiUrl (Error: " . $e->getMessage() . ")";
             }
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Terjadi kesalahan saat sinkronisasi: ' . $e->getMessage());
         }
-    }
+
+        if ($success) {
+            return redirect()->back()->with('success', "Berhasil sinkronisasi $count data hari libur dari salah satu API aktif.");
+        } else {
+            return redirect()->back()->with('error', 'Gagal mengambil data dari SEMUA API! Detail: ' . implode(', ', $errorMessages));
 }
