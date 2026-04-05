@@ -160,4 +160,6 @@ class HolidayController extends Controller
             return redirect()->back()->with('success', "Berhasil sinkronisasi $count data hari libur dari salah satu API aktif.");
         } else {
             return redirect()->back()->with('error', 'Gagal mengambil data dari SEMUA API! Detail: ' . implode(', ', $errorMessages));
+        }
+    }
 }
