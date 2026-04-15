@@ -33,7 +33,7 @@ class AttendanceController extends Controller
         if ($activeTemplate) {
             $timeSlot = TimeSlot::where('schedule_template_id', $activeTemplate->id)
                 ->where('day', $schedule->day)
-                ->where('period_order', $schedule->learning_sequence)
+                ->where('mapping_source', 'kbm_' . $schedule->learning_sequence)
                 ->first();
 
             if ($timeSlot) {
@@ -67,7 +67,7 @@ class AttendanceController extends Controller
         if ($activeTemplate) {
             $timeSlot = TimeSlot::where('schedule_template_id', $activeTemplate->id)
                 ->where('day', $schedule->day)
-                ->where('period_order', $schedule->learning_sequence)
+                ->where('mapping_source', 'kbm_' . $schedule->learning_sequence)
                 ->first();
 
             if ($timeSlot) {

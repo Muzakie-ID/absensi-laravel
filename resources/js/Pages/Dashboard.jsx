@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, usePage, Link } from '@inertiajs/react';
 
 export default function Dashboard({ schedule, today, date, holiday, is_picket_today, picket_teachers_count, picket_teachers_list }) {
     const user = usePage().props.auth.user;
@@ -20,6 +20,22 @@ export default function Dashboard({ schedule, today, date, holiday, is_picket_to
         >
             <Head title="Dashboard" />
 
+            {usePage().props.flash.message && (
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6">
+                    <div className="rounded-md bg-blue-50 p-4 text-sm text-blue-800 border border-blue-200">
+                        {usePage().props.flash.message}
+                    </div>
+                </div>
+            )}
+            
+            {usePage().props.flash.error && (
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6">
+                    <div className="rounded-md bg-red-50 p-4 text-sm text-red-800 border border-red-200">
+                        {usePage().props.flash.error}
+                    </div>
+                </div>
+            )}
+
             <div className="py-6">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     {!holiday && (
@@ -34,12 +50,12 @@ export default function Dashboard({ schedule, today, date, holiday, is_picket_to
                                             Silahkan pantau kehadiran kelas di menu Monitoring Kelas.
                                         </p>
                                     </div>
-                                    <a
+                                    <Link
                                         href={route('admin.monitoring')}
                                         className="inline-flex items-center px-4 py-2 bg-yellow-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-yellow-500 active:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition ease-in-out duration-150 shadow-sm"
                                     >
                                         Buka Monitoring
-                                    </a>
+                                    </Link>
                                 </div>
                             ) : picket_teachers_count > 0 ? (
                                 <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 flex-1 shadow-sm">
@@ -110,12 +126,12 @@ export default function Dashboard({ schedule, today, date, holiday, is_picket_to
                                             {/* Tombol Aksi */}
                                             <div className="mt-3">
                                                 {slot.can_attend && (
-                                                    <a 
+                                                    <Link 
                                                         href={route('attendance.create', slot.schedule_id)}
                                                         className="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                                                     >
                                                         📷 Absen Masuk
-                                                    </a>
+                                                    </Link>
                                                 )}
 
                                                 {slot.has_attended && (
