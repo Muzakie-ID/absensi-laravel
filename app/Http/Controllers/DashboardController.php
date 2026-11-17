@@ -332,8 +332,9 @@ class DashboardController extends Controller
                 return [
                     'teacher_name' => $att->user->name,
                     'status' => $att->status,
-                    'class_name' => $att->schedule ? $att->schedule->schoolClass->name : '-',
-                    'subject_name' => $att->schedule ? $att->schedule->subject->name : '-',
+                    // Pakai relasi jika masih ada, fallback ke kolom snapshot
+                    'class_name' => $att->schedule?->schoolClass?->name ?? $att->class_name ?? '-',
+                    'subject_name' => $att->schedule?->subject?->name ?? $att->subject_name ?? '-',
                     'notes' => $att->notes,
                     'time' => $att->check_in_time ? $att->check_in_time->format('H:i') : '-',
                 ];
@@ -447,7 +448,7 @@ class DashboardController extends Controller
         ];
 
         // 4. Guru yang Izin/Sakit Hari Ini (Terbaru 5)
-        $absentTeachers = Attendance::with(['schedule.user', 'schedule.schoolClass'])
+        $absentTeachers = Attendance::with(['user', 'schedule.schoolClass'])
             ->whereDate('created_at', $today)
             ->whereIn('status', ['sick', 'permit'])
             ->latest()
@@ -455,8 +456,9 @@ class DashboardController extends Controller
             ->get()
             ->map(function ($attendance) {
                 return [
-                    'teacher_name' => $attendance->schedule->user->name,
-                    'class_name' => $attendance->schedule->schoolClass->name,
+                    // Guru yang tercatat di absensi (bukan guru jadwal saat ini)
+                    'teacher_name' => $attendance->user?->name ?? '-',
+                    'class_name' => $attendance->schedule?->schoolClass?->name ?? $attendance->class_name ?? '-',
                     'status' => $attendance->status,
                     'time' => $attendance->created_at->format('H:i'),
                     'notes' => $attendance->notes
@@ -465,6 +467,7 @@ class DashboardController extends Controller
 
         // 5. Top 5 Guru Sering Izin (Bulan Ini)
         $topPermissionTeachers = Attendance::whereIn('status', ['permit', 'sick'])
+            ->whereYear('created_at', Carbon::now()->year)
             ->whereMonth('created_at', Carbon::now()->month)
             ->select('user_id', \Illuminate\Support\Facades\DB::raw('count(*) as total'))
             ->with('user')
@@ -480,12 +483,13 @@ class DashboardController extends Controller
             });
 
         // 6. Top 5 Kelas Sering Jam Kosong (Bulan Ini) - Guru Izin/Sakit/Alpha
+        // Pakai kolom snapshot class_name agar absensi dari jadwal yang sudah dihapus tetap terhitung
         $topEmptyClasses = Attendance::whereIn('status', ['permit', 'sick', 'alpha'])
-            ->whereMonth('attendances.created_at', Carbon::now()->month)
-            ->join('schedules', 'attendances.schedule_id', '=', 'schedules.id')
-            ->join('classes', 'schedules.class_id', '=', 'classes.id')
-            ->select('classes.name', \Illuminate\Support\Facades\DB::raw('count(*) as total'))
-            ->groupBy('classes.name')
+            ->whereYear('created_at', Carbon::now()->year)
+            ->whereMonth('created_at', Carbon::now()->month)
+            ->whereNotNull('class_name')
+            ->select('class_name as name', \Illuminate\Support\Facades\DB::raw('count(*) as total'))
+            ->groupBy('class_name')
             ->orderByDesc('total')
             ->take(5)
             ->get();

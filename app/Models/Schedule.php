@@ -3,9 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Schedule extends Model
 {
+    // Jadwal yang dihapus/diganti tetap disimpan agar riwayat absensi tidak hilang
+    use SoftDeletes;
+
     protected $fillable = [
         'user_id',
         'subject_id',

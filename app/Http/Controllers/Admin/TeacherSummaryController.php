@@ -76,8 +76,13 @@ class TeacherSummaryController extends Controller
             }
         }
 
-        // Ambil Jadwal Guru
+        // Ambil Jadwal Guru, termasuk jadwal yang sudah dihapus/diganti (soft delete)
+        // agar laporan bulan lalu tetap memakai jadwal yang berlaku saat itu.
         $schedules = $user->schedules()
+            ->withTrashed()
+            ->where(function ($q) use ($startDate) {
+                $q->whereNull('deleted_at')->orWhere('deleted_at', '>=', $startDate);
+            })
             ->with(['schoolClass.classStatus', 'subject'])
             ->orderBy('day')
             ->orderBy('learning_sequence')
@@ -146,6 +151,11 @@ class TeacherSummaryController extends Controller
                     // FIX: Jangan tampilkan "Alpha" jika tanggal laporan < tanggal pembuatan jadwal
                     // Ini mencegah laporan tahun lalu merah semua karena memakai jadwal baru
                     if (!$attendance && $currentDate->endOfDay()->lt($schedule->created_at)) {
+                        continue;
+                    }
+
+                    // Jadwal sudah dihapus/diganti sebelum tanggal ini -> tidak dihitung
+                    if (!$attendance && $schedule->deleted_at && $currentDate->copy()->startOfDay()->gte($schedule->deleted_at->copy()->startOfDay())) {
                         continue;
                     }
 

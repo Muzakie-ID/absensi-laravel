@@ -19,7 +19,8 @@ class LearningProgressController extends Controller
         
         if ($request->filled('school_class_id')) {
             $subjectsQuery->whereHas('schedules', function($q) use ($request) {
-                $q->where('class_id', $request->school_class_id);
+                // Termasuk jadwal lama (soft delete) agar progres materi lama tetap bisa dilihat
+                $q->withTrashed()->where('class_id', $request->school_class_id);
             });
         }
 

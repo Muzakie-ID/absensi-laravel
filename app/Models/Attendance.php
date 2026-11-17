@@ -25,9 +25,14 @@ class Attendance extends Model
         'check_in_time' => 'datetime',
     ];
 
+    /**
+     * Jadwal asal absensi. Termasuk jadwal yang sudah di-soft-delete agar
+     * riwayat tetap menampilkan guru/kelas/mapel yang sebenarnya.
+     * Bisa null jika kelas/mapel/jadwal dihapus permanen; gunakan kolom snapshot.
+     */
     public function schedule()
     {
-        return $this->belongsTo(Schedule::class);
+        return $this->belongsTo(Schedule::class)->withTrashed();
     }
 
     public function user()

@@ -112,7 +112,7 @@ export default function Show({ auth, user, schedules, stats, recentAttendances }
                                                     {new Date(attendance.created_at).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' })}
                                                 </p>
                                                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                                                    {attendance.schedule?.subject?.name} - {attendance.schedule?.schoolClass?.name}
+                                                    {attendance.schedule?.subject?.name || attendance.subject_name || '-'} - {attendance.schedule?.school_class?.name || attendance.class_name || '-'}
                                                 </p>
                                             </div>
                                             <div className="text-right">

@@ -144,10 +144,10 @@ export default function History({ attendances, stats, filters }) {
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <div className="text-sm text-gray-900 dark:text-white font-bold">
-                                                            {attendance.schedule?.school_class?.name || '-'}
+                                                            {attendance.schedule?.school_class?.name || attendance.class_name || '-'}
                                                         </div>
                                                         <div className="text-sm text-gray-500 dark:text-gray-400">
-                                                            {attendance.schedule?.subject?.name || '-'}
+                                                            {attendance.schedule?.subject?.name || attendance.subject_name || '-'}
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
