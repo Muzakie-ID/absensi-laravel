@@ -85,6 +85,28 @@ class ScheduleTemplateController extends Controller
     }
 
     // Time Slot Management
+
+    /**
+     * Ambil data time slot dari request dan normalisasi mapping_source
+     * ke format baku: 'kbm_N' untuk slot KBM, 'fixed' untuk slot tetap, atau null.
+     */
+    private function timeSlotData(Request $request): array
+    {
+        $data = $request->only(['day', 'period_order', 'activity_type_id', 'start_time', 'end_time', 'mapping_source']);
+
+        $source = trim((string) ($data['mapping_source'] ?? ''));
+        if ($source === '') {
+            $data['mapping_source'] = null;
+        } elseif (strtolower($source) === 'fixed') {
+            $data['mapping_source'] = 'fixed';
+        } else {
+            $sequence = TimeSlot::parseSequence($source);
+            $data['mapping_source'] = $sequence ? 'kbm_' . $sequence : null;
+        }
+
+        return $data;
+    }
+
     public function storeTimeSlot(Request $request, ScheduleTemplate $scheduleTemplate)
     {
         $request->validate([
@@ -93,10 +115,12 @@ class ScheduleTemplateController extends Controller
             'activity_type_id' => 'required|exists:activity_types,id',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
-            'mapping_source' => 'nullable|string'
+            'mapping_source' => ['nullable', 'string', 'regex:/^\s*(fixed|(kbm_)?\d+)\s*$/i'],
+        ], [
+            'mapping_source.regex' => 'Mapping Source harus berupa angka urutan KBM (contoh: 1 atau kbm_1), "fixed", atau dikosongkan.',
         ]);
 
-        $scheduleTemplate->timeSlots()->create($request->all());
+        $scheduleTemplate->timeSlots()->create($this->timeSlotData($request));
 
         return redirect()->back()->with('success', 'Slot waktu berhasil ditambahkan.');
     }
@@ -109,10 +133,12 @@ class ScheduleTemplateController extends Controller
             'activity_type_id' => 'required|exists:activity_types,id',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
-            'mapping_source' => 'nullable|string'
+            'mapping_source' => ['nullable', 'string', 'regex:/^\s*(fixed|(kbm_)?\d+)\s*$/i'],
+        ], [
+            'mapping_source.regex' => 'Mapping Source harus berupa angka urutan KBM (contoh: 1 atau kbm_1), "fixed", atau dikosongkan.',
         ]);
 
-        $timeSlot->update($request->all());
+        $timeSlot->update($this->timeSlotData($request));
 
         return redirect()->back()->with('success', 'Slot waktu berhasil diperbarui.');
     }

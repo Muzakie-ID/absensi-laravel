@@ -16,12 +16,26 @@ class UserSeeder extends Seeder
         $teacherRole = \App\Models\Role::where('name', 'teacher')->first();
         $picketRole = \App\Models\Role::where('name', 'picket')->first();
 
+        // Password default diambil dari SEED_DEFAULT_PASSWORD.
+        // Di production, jika tidak diisi, dibuat password acak dan ditampilkan sekali di console.
+        $plainPassword = env('SEED_DEFAULT_PASSWORD');
+        if (empty($plainPassword)) {
+            if (app()->environment('production')) {
+                $plainPassword = \Illuminate\Support\Str::password(16, symbols: false);
+                $this->command?->warn("SEED_DEFAULT_PASSWORD kosong. Password acak untuk akun seed: {$plainPassword}");
+                $this->command?->warn('Simpan password ini lalu segera ganti setelah login.');
+            } else {
+                $plainPassword = 'password';
+            }
+        }
+        $password = bcrypt($plainPassword);
+
         // Create Admin
         \App\Models\User::firstOrCreate(
             ['email' => 'admin@school.com'],
             [
                 'name' => 'Administrator',
-                'password' => bcrypt('password'),
+                'password' => $password,
                 'role_id' => $adminRole->id,
             ]
         );
@@ -31,7 +45,7 @@ class UserSeeder extends Seeder
             ['email' => 'piket@school.com'],
             [
                 'name' => 'Guru Piket',
-                'password' => bcrypt('password'),
+                'password' => $password,
                 'role_id' => $picketRole->id,
             ]
         );
@@ -43,7 +57,7 @@ class UserSeeder extends Seeder
                 ['email' => 'guru' . ($index + 1) . '@school.com'],
                 [
                     'name' => $name,
-                    'password' => bcrypt('password'),
+                    'password' => $password,
                     'role_id' => $teacherRole->id,
                 ]
             );

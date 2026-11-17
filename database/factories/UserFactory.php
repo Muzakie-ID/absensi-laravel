@@ -29,6 +29,8 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            // Default sebagai guru; override dengan ['role_id' => ...] bila perlu
+            'role_id' => fn () => \App\Models\Role::firstOrCreate(['name' => 'teacher'])->id,
         ];
     }
 

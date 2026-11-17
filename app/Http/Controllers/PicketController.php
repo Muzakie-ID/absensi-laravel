@@ -72,15 +72,14 @@ class PicketController extends Controller
              return response()->json([]);
         }
 
-        // Fallback manual mapping if locale not set
-        $days = [1 => 'senin', 2 => 'selasa', 3 => 'rabu', 4 => 'kamis', 5 => 'jumat', 6 => 'sabtu', 7 => 'minggu'];
-        $today = $days[\Carbon\Carbon::now()->dayOfWeekIso] ?? 'minggu';
+        $today = \App\Support\Day::today();
 
-        // Get TimeSlots for today
+        // Get TimeSlots for today, di-key berdasarkan urutan KBM (dari mapping_source)
         $timeSlots = \App\Models\TimeSlot::where('schedule_template_id', $activeTemplate->id)
             ->where('day', $today)
             ->get()
-            ->keyBy('period_order');
+            ->filter(fn ($slot) => $slot->learning_sequence !== null)
+            ->keyBy(fn ($slot) => $slot->learning_sequence);
 
         $results = [];
 

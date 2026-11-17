@@ -43,7 +43,10 @@ class GenerateAutoAlpha extends Command
                 ->where('day', $dayName)
                 ->get();
             foreach ($slots as $slot) {
-                $timeSlots[$slot->period_order] = $slot;
+                // Key berdasarkan urutan KBM dari mapping_source ('kbm_1' / '1'), bukan period_order
+                if ($sequence = TimeSlot::parseSequence($slot->mapping_source)) {
+                    $timeSlots[$sequence] = $slot;
+                }
             }
         }
 

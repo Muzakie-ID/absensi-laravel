@@ -11,6 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Drop unique index terlebih dahulu agar kompatibel dengan SQLite (dipakai saat testing)
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropUnique(['referral_code']);
+        });
+
         Schema::table('users', function (Blueprint $table) {
             $table->dropColumn('referral_code');
         });

@@ -75,6 +75,7 @@ Aplikasi berbasis web yang dirancang untuk memodernisasi proses presensi guru, m
    ```bash
    php artisan migrate --seed
    ```
+   *Akun bawaan seeder (`admin@school.com`, `piket@school.com`, `guru1..5@school.com`) memakai password dari `SEED_DEFAULT_PASSWORD` di `.env`. Di lokal, jika kosong, password-nya `password`; di production, jika kosong, dibuat password acak yang ditampilkan di console. **Segera ganti password akun-akun ini setelah login pertama.***
 
 5. **Jalankan Aplikasi**
    ```bash
@@ -130,15 +131,18 @@ Aplikasi ini sudah dilengkapi konfigurasi Docker siap pakai (Production Ready).
    
    Jika Anda menggunakan hosting yang tidak mendukung akses shell/crontab (atau ingin menggunakan layanan pihak ketiga):
    
-   1. Tambahkan variabel ini di file `.env`:
-      ```env
-      CRON_KEY=rahasia-sekolah-2025
+   1. Buat kunci acak lalu tambahkan ke file `.env`:
+      ```bash
+      php -r "echo bin2hex(random_bytes(24)), PHP_EOL;"
       ```
-      *(Ganti dengan password acak yang aman)*
+      ```env
+      CRON_KEY=<hasil-perintah-di-atas>
+      ```
+      *(Jika `CRON_KEY` kosong, endpoint `/scheduler/run` otomatis nonaktif / 404.)*
       
    2. Daftarkan URL berikut di layanan Cronjob External:
       ```
-      https://domain-anda.com/scheduler/run?key=rahasia-sekolah-2025
+      https://domain-anda.com/scheduler/run?key=<CRON_KEY-anda>
       ```
    3. Set interval menjadi **Setiap Menit** (atau minimal 5 menit sekali).
 

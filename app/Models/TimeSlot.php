@@ -28,6 +28,54 @@ class TimeSlot extends Model
         return $this->belongsTo(ActivityType::class);
     }
 
+    /**
+     * Ambil urutan KBM (learning_sequence) dari mapping_source.
+     * Mendukung format 'kbm_1' maupun '1'. Mengembalikan null untuk slot
+     * non-KBM ('fixed', kosong, atau format tidak dikenal).
+     */
+    public static function parseSequence(?string $mappingSource): ?int
+    {
+        if ($mappingSource === null) {
+            return null;
+        }
+
+        if (preg_match('/^\s*(?:kbm_)?(\d+)\s*$/i', $mappingSource, $m)) {
+            $sequence = (int) $m[1];
+            return $sequence > 0 ? $sequence : null;
+        }
+
+        return null;
+    }
+
+    public function getLearningSequenceAttribute(): ?int
+    {
+        return static::parseSequence($this->mapping_source);
+    }
+
+    /**
+     * Filter slot yang dipetakan ke urutan KBM tertentu (format 'kbm_N' atau 'N').
+     */
+    public function scopeForSequence($query, int $sequence)
+    {
+        return $query->whereIn('mapping_source', ['kbm_' . $sequence, (string) $sequence]);
+    }
+
+    /**
+     * Cari slot waktu di template aktif untuk hari & urutan KBM tertentu.
+     */
+    public static function findActiveFor(string $day, int $sequence): ?self
+    {
+        $activeTemplate = ScheduleTemplate::where('is_active', true)->first();
+        if (!$activeTemplate) {
+            return null;
+        }
+
+        return static::where('schedule_template_id', $activeTemplate->id)
+            ->where('day', $day)
+            ->forSequence($sequence)
+            ->first();
+    }
+
     public function getTypeAttribute()
     {
         if (!$this->activityType) return 'other';

@@ -14,23 +14,27 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 // Web Cron Route (Untuk External Cronjob Service)
+// Contoh: https://domain.com/scheduler/run?key=<CRON_KEY>
+// Endpoint ini nonaktif (404) jika CRON_KEY belum diisi di .env.
 Route::get('/scheduler/run', function () {
-    // Simple Security: Cek Token di URL
-    // Contoh: https://domain.com/scheduler/run?key=RAHASIA123
-    $key = request('key');
-    $validKey = config('app.key'); // Atau gunakan env('CRON_KEY') agar lebih aman
+    $validKey = (string) config('app.cron_key');
+    $key = (string) request('key', '');
 
-    if (!$key || $key !== env('CRON_KEY', 'default-cron-secret')) {
+    if ($validKey === '') {
+        abort(404);
+    }
+
+    if (!hash_equals($validKey, $key)) {
         abort(403, 'Unauthorized endpoint');
     }
 
     \Illuminate\Support\Facades\Artisan::call('schedule:run');
-    
+
     return response()->json([
         'message' => 'Scheduler executed',
         'output' => \Illuminate\Support\Facades\Artisan::output()
     ]);
-});
+})->middleware('throttle:10,1');
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -44,16 +48,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/attendance/{schedule}', [AttendanceController::class, 'create'])->name('attendance.create');
     Route::post('/attendance/{schedule}', [AttendanceController::class, 'store'])->name('attendance.store');
 
-    // Admin Routes
-    Route::get('admin/monitoring', [DashboardController::class, 'monitoring'])->name('admin.monitoring');
-    Route::post('admin/monitoring/attendance', [DashboardController::class, 'updateAttendance'])->name('admin.monitoring.attendance');
-    
-    // Picket Routes
-    Route::post('picket/logs', [\App\Http\Controllers\PicketController::class, 'storeLog'])->name('picket.logs.store');
-    Route::post('picket/guests', [\App\Http\Controllers\PicketController::class, 'storeGuest'])->name('picket.guests.store');
-    Route::post('picket/guests/{guestBook}/checkout', [\App\Http\Controllers\PicketController::class, 'checkoutGuest'])->name('picket.guests.checkout');
-    Route::get('picket/search-schedule', [\App\Http\Controllers\PicketController::class, 'searchSchedule'])->name('picket.search-schedule');
+    // Monitoring & Picket Routes (Admin, role Piket, atau guru yang terjadwal piket hari ini)
+    Route::middleware('picket')->group(function () {
+        Route::get('admin/monitoring', [DashboardController::class, 'monitoring'])->name('admin.monitoring');
+        Route::post('admin/monitoring/attendance', [DashboardController::class, 'updateAttendance'])->name('admin.monitoring.attendance');
 
+        Route::post('picket/logs', [\App\Http\Controllers\PicketController::class, 'storeLog'])->name('picket.logs.store');
+        Route::post('picket/guests', [\App\Http\Controllers\PicketController::class, 'storeGuest'])->name('picket.guests.store');
+        Route::post('picket/guests/{guestBook}/checkout', [\App\Http\Controllers\PicketController::class, 'checkoutGuest'])->name('picket.guests.checkout');
+        Route::get('picket/search-schedule', [\App\Http\Controllers\PicketController::class, 'searchSchedule'])->name('picket.search-schedule');
+    });
+});
+
+// Admin Routes (hanya role admin)
+Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::resource('admin/classes', SchoolClassController::class)
         ->names('admin.classes')
         ->parameters(['classes' => 'school_class']);

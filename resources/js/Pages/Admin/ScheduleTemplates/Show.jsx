@@ -306,7 +306,7 @@ export default function ScheduleTemplateShow({ auth, template, timeSlots, activi
                     <div className="mb-6">
                         <InputLabel htmlFor="mapping_source" value="Mapping Source (Opsional)" className="dark:text-gray-300" />
                         <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                            Isi dengan angka urutan KBM jika slot ini adalah jam pelajaran. Contoh: "1" untuk jam pelajaran pertama. Kosongkan jika istirahat/upacara.
+                            Isi dengan angka urutan KBM jika slot ini adalah jam pelajaran. Contoh: "1" (atau "kbm_1") untuk jam pelajaran pertama. Kosongkan atau isi "fixed" jika istirahat/upacara. Disimpan otomatis dalam format "kbm_1".
                         </p>
                         <TextInput
                             id="mapping_source"

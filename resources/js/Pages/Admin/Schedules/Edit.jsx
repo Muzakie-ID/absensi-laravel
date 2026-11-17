@@ -3,6 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm, Link, usePage } from '@inertiajs/react';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
+import { parseSequence } from '@/utils/schedule';
 
 export default function ScheduleEdit({ auth, schoolClass, schedules, subjects, teachers, activeTemplate }) {
     const { flash } = usePage().props;
@@ -34,10 +35,10 @@ export default function ScheduleEdit({ auth, schoolClass, schedules, subjects, t
         const initial = {};
         if (activeTemplate && activeTemplate.time_slots) {
             activeTemplate.time_slots.forEach(slot => {
-                if (slot.mapping_source) {
-                    const seq = parseInt(slot.mapping_source);
-                    // Only process if seq is a valid number
-                    if (!isNaN(seq)) {
+                {
+                    // mapping_source bisa 'kbm_1' atau '1'
+                    const seq = parseSequence(slot.mapping_source);
+                    if (seq !== null) {
                         const existing = getSchedule(slot.day, seq);
                         initial[`${slot.day}-${seq}`] = {
                             day: slot.day,
@@ -161,9 +162,9 @@ export default function ScheduleEdit({ auth, schoolClass, schedules, subjects, t
                                         </div>
                                         <div className="p-2 space-y-2">
                                             {daySlots.map(slot => {
-                                                // Ensure mapping_source is a valid number
-                                                const isLearning = slot.mapping_source !== null && !isNaN(parseInt(slot.mapping_source));
-                                                const sequence = isLearning ? parseInt(slot.mapping_source) : null;
+                                                // mapping_source bisa 'kbm_1' atau '1'
+                                                const sequence = parseSequence(slot.mapping_source);
+                                                const isLearning = sequence !== null;
                                                 const key = `${day}-${sequence}`;
                                                 const currentData = localSchedules[key] || {};
 

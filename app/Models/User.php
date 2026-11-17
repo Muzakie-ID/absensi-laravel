@@ -50,6 +50,29 @@ class User extends Authenticatable
     }
 
     /**
+     * Cek apakah user memiliki salah satu role yang diberikan (berdasarkan nama role).
+     */
+    public function hasRole(string ...$roles): bool
+    {
+        $name = $this->role?->name;
+
+        return $name !== null && in_array($name, $roles, true);
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->hasRole('admin');
+    }
+
+    /**
+     * Apakah user terjadwal piket hari ini.
+     */
+    public function isPicketToday(): bool
+    {
+        return $this->picketSchedules()->where('day', \App\Support\Day::today())->exists();
+    }
+
+    /**
      * The attributes that should be hidden for serialization.
      *
      * @var list<string>

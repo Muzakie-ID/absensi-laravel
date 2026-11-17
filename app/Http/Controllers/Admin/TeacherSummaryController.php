@@ -69,7 +69,10 @@ class TeacherSummaryController extends Controller
         if ($activeTemplate) {
             $slots = TimeSlot::where('schedule_template_id', $activeTemplate->id)->get();
             foreach ($slots as $slot) {
-                $timeSlots[$slot->day][$slot->period_order] = $slot;
+                // Key berdasarkan urutan KBM dari mapping_source ('kbm_1' / '1'), bukan period_order
+                if ($sequence = TimeSlot::parseSequence($slot->mapping_source)) {
+                    $timeSlots[$slot->day][$sequence] = $slot;
+                }
             }
         }
 

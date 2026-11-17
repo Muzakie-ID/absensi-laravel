@@ -14,6 +14,7 @@ use App\Models\PicketLog;
 use App\Models\PicketSchedule;
 use App\Models\GuestBook;
 use App\Models\Announcement;
+use App\Support\Day;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -36,11 +37,7 @@ class DashboardController extends Controller
         // 1. Tentukan Hari Ini (Senin, Selasa, dst)
         // Carbon::now()->locale('id')->dayName mengembalikan 'Senin', 'Selasa' jika locale diset ID
         // Untuk aman, kita mapping manual dari dayOfWeekIso (1=Senin, 7=Minggu)
-        $days = [
-            1 => 'senin', 2 => 'selasa', 3 => 'rabu', 4 => 'kamis', 
-            5 => 'jumat', 6 => 'sabtu', 7 => 'minggu'
-        ];
-        $today = $days[Carbon::now()->dayOfWeekIso] ?? 'minggu';
+        $today = Day::today();
 
         // Cek Hari Libur
         $holiday = Holiday::whereDate('date', Carbon::today())->first();
@@ -135,11 +132,8 @@ class DashboardController extends Controller
                 
                 $data['subtitle'] = 'Seluruh Sekolah';
 
-            } elseif ($slot->mapping_source) {
-                // Slot KBM (Ambil dari Jadwal Guru)
-                // Handle 'kbm_1' or just '1'
-                $sequence = (int) str_replace('kbm_', '', $slot->mapping_source);
-                
+            } elseif ($sequence = TimeSlot::parseSequence($slot->mapping_source)) {
+                // Slot KBM (Ambil dari Jadwal Guru), mapping_source 'kbm_1' atau '1'
                 if (isset($teacherSchedules[$sequence])) {
                     $schedule = $teacherSchedules[$sequence];
                     
@@ -200,14 +194,8 @@ class DashboardController extends Controller
 
     public function monitoring(Request $request)
     {
-        $user = auth()->user();
-        $days = [1 => 'senin', 2 => 'selasa', 3 => 'rabu', 4 => 'kamis', 5 => 'jumat', 6 => 'sabtu', 7 => 'minggu'];
-        $today = $days[Carbon::now()->dayOfWeekIso] ?? 'minggu';
-
-        $isPicketToday = PicketSchedule::where('user_id', $user->id)->where('day', $today)->exists();
-        if ($user->role->name !== 'admin' && $user->role->name !== 'picket' && !$isPicketToday) {
-            abort(403, 'Akses ditolak. Anda tidak memiliki tugas piket hari ini.');
-        }
+        // Hak akses dicek oleh middleware 'picket' (lihat routes/web.php)
+        $today = Day::today();
 
         $now = Carbon::now();
 
@@ -259,9 +247,8 @@ class DashboardController extends Controller
                 'name' => $currentSlot->type === 'learning' ? 'Jam Ke-' . $currentSlot->period_order : strtoupper($currentSlot->type)
             ];
 
-            if ($currentSlot->mapping_source && $currentSlot->type === 'learning') {
-                $sequence = (int) str_replace('kbm_', '', $currentSlot->mapping_source);
-                
+            $sequence = TimeSlot::parseSequence($currentSlot->mapping_source);
+            if ($sequence && $currentSlot->type === 'learning') {
                 // Ambil semua kelas aktif
                 $classes = SchoolClass::whereHas('classStatus', function($q) {
                     $q->where('code', 'active');
@@ -385,15 +372,7 @@ class DashboardController extends Controller
 
     public function updateAttendance(Request $request)
     {
-        $user = auth()->user();
-        $days = [1 => 'senin', 2 => 'selasa', 3 => 'rabu', 4 => 'kamis', 5 => 'jumat', 6 => 'sabtu', 7 => 'minggu'];
-        $today = $days[Carbon::now()->dayOfWeekIso] ?? 'minggu';
-        
-        $isPicketToday = PicketSchedule::where('user_id', $user->id)->where('day', $today)->exists();
-        if ($user->role->name !== 'admin' && $user->role->name !== 'picket' && !$isPicketToday) {
-            abort(403, 'Akses ditolak.');
-        }
-
+        // Hak akses dicek oleh middleware 'picket' (lihat routes/web.php)
         $request->validate([
             'schedule_id' => 'required|exists:schedules,id',
             'status' => 'required|in:present,late,sick,permit,missing,alpha',
@@ -420,21 +399,9 @@ class DashboardController extends Controller
             ]);
         } else {
             // Ambil data snapshot jadwal
-            $activeTemplate = ScheduleTemplate::where('is_active', true)->first();
-            $startTime = null;
-            $endTime = null;
-
-            if ($activeTemplate) {
-                $timeSlot = TimeSlot::where('schedule_template_id', $activeTemplate->id)
-                    ->where('day', $schedule->day)
-                    ->where('period_order', $schedule->learning_sequence)
-                    ->first();
-                
-                if ($timeSlot) {
-                    $startTime = $timeSlot->start_time;
-                    $endTime = $timeSlot->end_time;
-                }
-            }
+            $timeSlot = TimeSlot::findActiveFor($schedule->day, $schedule->learning_sequence);
+            $startTime = $timeSlot?->start_time;
+            $endTime = $timeSlot?->end_time;
 
             Attendance::create([
                 'schedule_id' => $schedule->id,
@@ -545,11 +512,7 @@ class DashboardController extends Controller
             ]);
         }
 
-        $days = [
-            1 => 'senin', 2 => 'selasa', 3 => 'rabu', 4 => 'kamis', 
-            5 => 'jumat', 6 => 'sabtu', 7 => 'minggu'
-        ];
-        $todayName = $days[Carbon::now()->dayOfWeekIso] ?? 'minggu';
+        $todayName = Day::today();
 
         // Cek Hari Libur
         $holiday = Holiday::whereDate('date', Carbon::today())->first();
@@ -593,12 +556,8 @@ class DashboardController extends Controller
                 
                 if ($slot->type === 'learning' || ($slot->activityType && $slot->activityType->name === 'learning')) {
                     // Cek mapping source untuk dapat kbm_X
-                    $seq = null;
-                    if ($slot->mapping_source) {
-                         // mapping_source bisa '1', '2' atau 'kbm_1' (jika ada prefix)
-                         // Asumsi: mapping_source adalah angka sequence
-                         $seq = (int) $slot->mapping_source;
-                    }
+                    // mapping_source bisa 'kbm_1' atau '1'
+                    $seq = TimeSlot::parseSequence($slot->mapping_source);
 
                     if ($seq && isset($currentDaySchedules[$seq])) {
                         $scheduleItem = $currentDaySchedules[$seq];

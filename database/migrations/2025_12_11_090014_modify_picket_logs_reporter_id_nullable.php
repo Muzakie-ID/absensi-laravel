@@ -18,7 +18,14 @@ return new class extends Migration
         });
 
         // Make column nullable using raw SQL to avoid doctrine/dbal dependency
-        DB::statement('ALTER TABLE picket_logs MODIFY reporter_id BIGINT UNSIGNED NULL');
+        if (DB::getDriverName() === 'mysql' || DB::getDriverName() === 'mariadb') {
+            DB::statement('ALTER TABLE picket_logs MODIFY reporter_id BIGINT UNSIGNED NULL');
+        } else {
+            // Driver lain (mis. SQLite untuk testing): gunakan schema builder bawaan Laravel
+            Schema::table('picket_logs', function (Blueprint $table) {
+                $table->unsignedBigInteger('reporter_id')->nullable()->change();
+            });
+        }
 
         Schema::table('picket_logs', function (Blueprint $table) {
             // Add new foreign key with nullOnDelete
@@ -41,7 +48,13 @@ return new class extends Migration
         // Revert to not nullable
         // Warning: This will fail if there are NULL values.
         // We assume this is a rollback immediately after migration or data is clean.
-        DB::statement('ALTER TABLE picket_logs MODIFY reporter_id BIGINT UNSIGNED NOT NULL');
+        if (DB::getDriverName() === 'mysql' || DB::getDriverName() === 'mariadb') {
+            DB::statement('ALTER TABLE picket_logs MODIFY reporter_id BIGINT UNSIGNED NOT NULL');
+        } else {
+            Schema::table('picket_logs', function (Blueprint $table) {
+                $table->unsignedBigInteger('reporter_id')->nullable(false)->change();
+            });
+        }
 
         Schema::table('picket_logs', function (Blueprint $table) {
             $table->foreign('reporter_id')
